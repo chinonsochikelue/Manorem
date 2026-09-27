@@ -1,0 +1,42 @@
+# Build context for docker/Dockerfile.engine.
+#
+# The engine image is the render sandbox: it must never contain the LLM client, the
+# service adapters, or their dependencies. This file is the structural guarantee.
+# manorem-ai (Gemini, provenance, agents) and manorem-cli are excluded from the build
+# context entirely -- so even a stray `COPY . .` could not drag them in, and an
+# accidental import of them from the render path fails the build's smoke test rather
+# than shipping a fatter, network-capable sandbox.
+packages/ai
+packages/cli
+packages/compositor
+
+# Slice 4 services -- not part of the M1 engine.
+apps
+packages-ts
+
+# Everything an image build has no use for.
+.git
+.github
+.venv
+**/.venv
+**/__pycache__
+**/*.pyc
+.mypy_cache
+.pytest_cache
+.ruff_cache
+
+# Render leftovers and workspace output -- never baked into the image.
+media
+out
+outputs
+assets
+
+# Tests and their fixtures render inside the image from the source tree at run time,
+# not from a copy baked at build time.
+tests
+docs
+examples
+tools
+README*.md
+.env
+.env.example

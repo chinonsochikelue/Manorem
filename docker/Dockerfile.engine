@@ -1,0 +1,74 @@
+# The reproducible render engine.
+#
+# This image is the answer to two requirements at once:
+#
+#   1. Sandboxing (§26). The render worker runs untrusted, machine-generated plans
+#      through Manim in a subprocess. Pinning the whole toolchain -- Python, Manim,
+#      FFmpeg and a fixed TeX set -- into one image makes that subprocess reproducible
+#      and isolatable, rather than a function of whatever the host happens to have.
+#
+#   2. Golden stability (Risk 8). Manim's output depends on font rasterization and
+#      the LaTeX distribution, which diverge across OSes. Golden renders are therefore
+#      generated and compared *inside this image* so a coordinate or glyph does not
+#      shift between a developer's Windows box and Linux CI.
+#
+# Critically, the engine installs WITHOUT the API or service dependencies. The whole
+# packages/* split exists so `uv sync --package manorem-renderer` pulls only the
+# engine subtree -- core, ir, skills, compiler, renderer -- and never manorem-ai
+# (Gemini, provenance) or manorem-cli. The render worker has no business importing an
+# LLM client.
+
+FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim
+
+# Manim's runtime: Cairo + Pango for 2D drawing and text shaping, FFmpeg for muxing,
+# and a deliberately minimal TeX set for MathTex. texlive-full would add gigabytes;
+# these packages cover the math and text the core skill pack emits.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ffmpeg \
+        build-essential \
+        pkg-config \
+        libcairo2-dev \
+        libpango1.0-dev \
+        texlive-latex-base \
+        texlive-latex-extra \
+        texlive-fonts-recommended \
+        texlive-science \
+        dvisvgm \
+    && rm -rf /var/lib/apt/lists/*
+
+# Byte-compile to the image, don't link back to a mounted cache, and never phone home.
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_NO_SYNC=1 \
+    MANOREM_LLM_PROVIDER=cassette
+
+WORKDIR /engine
+
+# The workspace root and the engine packages only. manorem-ai and manorem-cli are
+# intentionally absent from the build context (see .dockerignore) -- if the render
+# path ever grew an import of them, the build would fail here rather than silently
+# dragging service dependencies into the sandbox.
+COPY pyproject.toml uv.lock ./
+COPY packages/core packages/core
+COPY packages/ir packages/ir
+COPY packages/skills packages/skills
+COPY packages/compiler packages/compiler
+COPY packages/renderer packages/renderer
+
+# Resolve exactly the renderer's subtree from the locked versions. --frozen fails if
+# uv.lock is stale, so the image can never quietly drift from the committed lock.
+RUN uv sync --frozen --no-dev --package manorem-renderer
+
+# A non-root user for the sandbox: a runaway plan should not execute as root even
+# inside a container.
+RUN useradd --create-home --uid 10001 engine \
+    && chown -R engine:engine /engine
+USER engine
+
+# Smoke test at build time: the fixed interpreter and Manim must both import. This
+# turns a broken engine image into a failed build instead of a failed render later.
+RUN uv run python -c "import manim; import manorem_renderer.manim.plan_scene"
+
+# No ENTRYPOINT: the worker drives `python -m manim render ...` itself with an argv
+# list and MANOREM_PLAN_PATH pointing at the plan. The image is the environment, the
+# worker is the command.
