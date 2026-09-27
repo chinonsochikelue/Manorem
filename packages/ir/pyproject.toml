@@ -1,0 +1,16 @@
+[project]
+name = "manorem-ir"
+version = "0.1.0"
+description = "The Visual IR: source of truth for every animation. Strongly typed, validated, versioned."
+requires-python = ">=3.13"
+dependencies = [
+    "manorem-core",
+    "pydantic>=2.9",
+]
+
+[tool.uv.sources]
+manorem-core = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
