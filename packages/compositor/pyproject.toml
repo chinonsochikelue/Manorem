@@ -1,0 +1,18 @@
+[project]
+name = "manorem-compositor"
+version = "0.1.0"
+description = "Post-production: scene concat, audio timeline, subtitles, FFmpeg muxing."
+requires-python = ">=3.13"
+dependencies = [
+    "manorem-core",
+    "manorem-compiler",
+    "pydantic>=2.9",
+]
+
+[tool.uv.sources]
+manorem-core = { workspace = true }
+manorem-compiler = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
