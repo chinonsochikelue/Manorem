@@ -1,0 +1,2596 @@
+{
+  "ir_version": "1.0",
+  "id": "gps",
+  "title": "How GPS Determines Your Location",
+  "idea": "How GPS determines your location.",
+  "style": {
+    "background": "#0E1116",
+    "primary": "#5AB2FF",
+    "secondary": "#FFD166",
+    "accent": "#EF476F",
+    "muted": "#6B7280",
+    "text": "#F5F7FA",
+    "success": "#06D6A0",
+    "title_size": 0.22,
+    "heading_size": 0.15,
+    "body_size": 0.1,
+    "caption_size": 0.07,
+    "stroke_width": 2.5,
+    "default_op_duration": 1.0
+  },
+  "format": {
+    "aspect": "16:9",
+    "width": 854,
+    "height": 480,
+    "fps": 15,
+    "bitrate_kbps": null
+  },
+  "episodes": [
+    {
+      "id": "main",
+      "title": "How GPS Determines Your Location",
+      "scenes": [
+        {
+          "id": "phone_asks",
+          "name": "The question",
+          "intent": "Open on the everyday magic: the phone knows where you are.",
+          "duration_hint": null,
+          "skills": [
+            "core"
+          ],
+          "objects": [
+            {
+              "id": "title",
+              "kind": "text",
+              "props": {
+                "kind": "text",
+                "content": "Where am I?",
+                "role": "title",
+                "align": "center"
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": 0.75
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "phone",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.05
+              },
+              "label": "Your phone",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": -0.15
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            }
+          ],
+          "groups": [],
+          "relationships": [],
+          "layout": {
+            "kind": "centered",
+            "region": {
+              "min_x": -1.0,
+              "min_y": -1.0,
+              "max_x": 1.0,
+              "max_y": 1.0
+            },
+            "gap": 0.15,
+            "padding": 0.08,
+            "align": "center",
+            "columns": null,
+            "rows": null,
+            "radius": null,
+            "start_angle": 90.0,
+            "direction": "horizontal",
+            "slots": [],
+            "seed": 0
+          },
+          "camera": {
+            "initial": {
+              "center": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "width": 2.0
+            },
+            "auto_frame": false,
+            "min_width": 0.4,
+            "max_width": 3.0,
+            "follow": null,
+            "reset_at_end": false
+          },
+          "narration": [
+            {
+              "id": "hook",
+              "role": "hook",
+              "text": "Your phone always seems to know exactly where you are.",
+              "wpm": null,
+              "mentions": [],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            },
+            {
+              "id": "ask",
+              "role": "question",
+              "text": "But how does it work out that little blue dot?",
+              "wpm": null,
+              "mentions": [
+                "phone"
+              ],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            }
+          ],
+          "timeline": [
+            {
+              "id": "show_title",
+              "op": "show",
+              "targets": [
+                "title"
+              ],
+              "params": {},
+              "at": {
+                "at": "narration",
+                "segment": "hook",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.2
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_phone",
+              "op": "show",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "show_title",
+                "gap": 0.2
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.0
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "ask_phone",
+              "op": "highlight",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "narration",
+                "segment": "ask",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.0
+              },
+              "easing": null,
+              "why": null
+            }
+          ],
+          "transition_in": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "transition_out": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "background": null
+        },
+        {
+          "id": "satellites_revealed",
+          "name": "The satellites",
+          "intent": "Reveal the constellation overhead that makes it possible.",
+          "duration_hint": null,
+          "skills": [
+            "core"
+          ],
+          "objects": [
+            {
+              "id": "phone",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.05
+              },
+              "label": "Your phone",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": -0.15
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_1",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 1",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_2",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 2",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.66,
+                  "y": 0.55
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_3",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 3",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.1,
+                  "y": -0.78
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_4",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 4",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.8,
+                  "y": -0.05
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            }
+          ],
+          "groups": [],
+          "relationships": [],
+          "layout": {
+            "kind": "centered",
+            "region": {
+              "min_x": -1.0,
+              "min_y": -1.0,
+              "max_x": 1.0,
+              "max_y": 1.0
+            },
+            "gap": 0.15,
+            "padding": 0.08,
+            "align": "center",
+            "columns": null,
+            "rows": null,
+            "radius": null,
+            "start_angle": 90.0,
+            "direction": "horizontal",
+            "slots": [],
+            "seed": 0
+          },
+          "camera": {
+            "initial": {
+              "center": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "width": 2.0
+            },
+            "auto_frame": false,
+            "min_width": 0.4,
+            "max_width": 3.0,
+            "follow": null,
+            "reset_at_end": false
+          },
+          "narration": [
+            {
+              "id": "orbit",
+              "role": "context",
+              "text": "High above you, a fleet of GPS satellites circles the Earth.",
+              "wpm": null,
+              "mentions": [],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            },
+            {
+              "id": "inview",
+              "role": "context",
+              "text": "At any moment, several of them are in view of your phone.",
+              "wpm": null,
+              "mentions": [
+                "sat_1"
+              ],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            }
+          ],
+          "timeline": [
+            {
+              "id": "show_phone",
+              "op": "show",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "narration",
+                "segment": "orbit",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.8
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_sats",
+              "op": "show",
+              "targets": [
+                "sat_1",
+                "sat_2",
+                "sat_3",
+                "sat_4"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "show_phone",
+                "gap": 0.2
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.2
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "blink_sats",
+              "op": "highlight",
+              "targets": [
+                "sat_1",
+                "sat_2",
+                "sat_3",
+                "sat_4"
+              ],
+              "params": {},
+              "at": {
+                "at": "narration",
+                "segment": "inview",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.0
+              },
+              "easing": null,
+              "why": null
+            }
+          ],
+          "transition_in": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "transition_out": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "background": null
+        },
+        {
+          "id": "signals_arrive",
+          "name": "The signals",
+          "intent": "Each satellite broadcasts; the signals race down to the phone.",
+          "duration_hint": null,
+          "skills": [
+            "core",
+            "networks"
+          ],
+          "objects": [
+            {
+              "id": "phone",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.05
+              },
+              "label": "Your phone",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": -0.15
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_1",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 1",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_2",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 2",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.66,
+                  "y": 0.55
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_3",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 3",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.1,
+                  "y": -0.78
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            }
+          ],
+          "groups": [],
+          "relationships": [
+            {
+              "kind": "connected_to",
+              "source": "sat_1",
+              "target": "phone",
+              "label": null
+            },
+            {
+              "kind": "connected_to",
+              "source": "sat_2",
+              "target": "phone",
+              "label": null
+            },
+            {
+              "kind": "connected_to",
+              "source": "sat_3",
+              "target": "phone",
+              "label": null
+            }
+          ],
+          "layout": {
+            "kind": "centered",
+            "region": {
+              "min_x": -1.0,
+              "min_y": -1.0,
+              "max_x": 1.0,
+              "max_y": 1.0
+            },
+            "gap": 0.15,
+            "padding": 0.08,
+            "align": "center",
+            "columns": null,
+            "rows": null,
+            "radius": null,
+            "start_angle": 90.0,
+            "direction": "horizontal",
+            "slots": [],
+            "seed": 0
+          },
+          "camera": {
+            "initial": {
+              "center": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "width": 2.0
+            },
+            "auto_frame": false,
+            "min_width": 0.4,
+            "max_width": 3.0,
+            "follow": null,
+            "reset_at_end": false
+          },
+          "narration": [
+            {
+              "id": "broadcast",
+              "role": "context",
+              "text": "Each satellite constantly broadcasts the time and its position.",
+              "wpm": null,
+              "mentions": [],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            },
+            {
+              "id": "race",
+              "role": "context",
+              "text": "Those signals race down to your phone at the speed of light.",
+              "wpm": null,
+              "mentions": [
+                "phone"
+              ],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            }
+          ],
+          "timeline": [
+            {
+              "id": "show_phone",
+              "op": "show",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "absolute",
+                "seconds": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.6
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_sats",
+              "op": "show",
+              "targets": [
+                "sat_1",
+                "sat_2",
+                "sat_3"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "show_phone",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.8
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "flow_1",
+              "op": "flow",
+              "targets": [
+                "sat_1",
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "narration",
+                "segment": "race",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.2
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "flow_2",
+              "op": "flow",
+              "targets": [
+                "sat_2",
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "with",
+                "cue": "flow_1",
+                "offset": 0.15
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.2
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "flow_3",
+              "op": "flow",
+              "targets": [
+                "sat_3",
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "with",
+                "cue": "flow_1",
+                "offset": 0.3
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.2
+              },
+              "easing": null,
+              "why": null
+            }
+          ],
+          "transition_in": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "transition_out": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "background": null
+        },
+        {
+          "id": "one_radius",
+          "name": "One distance",
+          "intent": "Travel time becomes a distance -- a whole circle of possible spots.",
+          "duration_hint": null,
+          "skills": [
+            "core"
+          ],
+          "objects": [
+            {
+              "id": "sat_1",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 1",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "phone",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.05
+              },
+              "label": "Your phone",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": -0.15
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "circle_1",
+              "kind": "circle",
+              "props": {
+                "kind": "circle",
+                "radius": 0.9731,
+                "filled": false
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            }
+          ],
+          "groups": [],
+          "relationships": [],
+          "layout": {
+            "kind": "centered",
+            "region": {
+              "min_x": -1.0,
+              "min_y": -1.0,
+              "max_x": 1.0,
+              "max_y": 1.0
+            },
+            "gap": 0.15,
+            "padding": 0.08,
+            "align": "center",
+            "columns": null,
+            "rows": null,
+            "radius": null,
+            "start_angle": 90.0,
+            "direction": "horizontal",
+            "slots": [],
+            "seed": 0
+          },
+          "camera": {
+            "initial": {
+              "center": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "width": 2.0
+            },
+            "auto_frame": false,
+            "min_width": 0.4,
+            "max_width": 3.0,
+            "follow": null,
+            "reset_at_end": false
+          },
+          "narration": [
+            {
+              "id": "timing",
+              "role": "context",
+              "text": "The signal's travel time tells the phone how far that satellite is.",
+              "wpm": null,
+              "mentions": [],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            },
+            {
+              "id": "circle",
+              "role": "context",
+              "text": "That one distance places you somewhere on a circle around it.",
+              "wpm": null,
+              "mentions": [
+                "circle_1"
+              ],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            }
+          ],
+          "timeline": [
+            {
+              "id": "show_sat",
+              "op": "show",
+              "targets": [
+                "sat_1"
+              ],
+              "params": {},
+              "at": {
+                "at": "absolute",
+                "seconds": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.6
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_phone",
+              "op": "show",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "show_sat",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.6
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "draw_circle",
+              "op": "show",
+              "targets": [
+                "circle_1"
+              ],
+              "params": {
+                "style": "draw"
+              },
+              "at": {
+                "at": "narration",
+                "segment": "circle",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.2
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "pulse_circle",
+              "op": "highlight",
+              "targets": [
+                "circle_1"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "draw_circle",
+                "gap": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.8
+              },
+              "easing": null,
+              "why": null
+            }
+          ],
+          "transition_in": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "transition_out": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "background": null
+        },
+        {
+          "id": "two_radii",
+          "name": "Two distances",
+          "intent": "A second circle cuts the possibilities down to two crossing points.",
+          "duration_hint": null,
+          "skills": [
+            "core"
+          ],
+          "objects": [
+            {
+              "id": "phone",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.05
+              },
+              "label": "Your phone",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": -0.15
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_1",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 1",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_2",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 2",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.66,
+                  "y": 0.55
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "circle_1",
+              "kind": "circle",
+              "props": {
+                "kind": "circle",
+                "radius": 0.9731,
+                "filled": false
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "circle_2",
+              "kind": "circle",
+              "props": {
+                "kind": "circle",
+                "radius": 0.9621,
+                "filled": false
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.66,
+                  "y": 0.55
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            }
+          ],
+          "groups": [],
+          "relationships": [],
+          "layout": {
+            "kind": "centered",
+            "region": {
+              "min_x": -1.0,
+              "min_y": -1.0,
+              "max_x": 1.0,
+              "max_y": 1.0
+            },
+            "gap": 0.15,
+            "padding": 0.08,
+            "align": "center",
+            "columns": null,
+            "rows": null,
+            "radius": null,
+            "start_angle": 90.0,
+            "direction": "horizontal",
+            "slots": [],
+            "seed": 0
+          },
+          "camera": {
+            "initial": {
+              "center": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "width": 2.0
+            },
+            "auto_frame": false,
+            "min_width": 0.4,
+            "max_width": 3.0,
+            "follow": null,
+            "reset_at_end": false
+          },
+          "narration": [
+            {
+              "id": "second",
+              "role": "context",
+              "text": "Add a second satellite, and you get a second circle.",
+              "wpm": null,
+              "mentions": [],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            },
+            {
+              "id": "cross",
+              "role": "context",
+              "text": "You must be standing where the two circles cross.",
+              "wpm": null,
+              "mentions": [
+                "phone"
+              ],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            }
+          ],
+          "timeline": [
+            {
+              "id": "show_sats",
+              "op": "show",
+              "targets": [
+                "sat_1",
+                "sat_2"
+              ],
+              "params": {},
+              "at": {
+                "at": "absolute",
+                "seconds": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.8
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_phone",
+              "op": "show",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "show_sats",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.5
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "draw_circles",
+              "op": "show",
+              "targets": [
+                "circle_1",
+                "circle_2"
+              ],
+              "params": {
+                "style": "draw"
+              },
+              "at": {
+                "at": "after",
+                "cue": "show_phone",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.2
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "mark_cross",
+              "op": "highlight",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "narration",
+                "segment": "cross",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.8
+              },
+              "easing": null,
+              "why": null
+            }
+          ],
+          "transition_in": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "transition_out": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "background": null
+        },
+        {
+          "id": "three_radii",
+          "name": "Three distances",
+          "intent": "A third circle pins the location to a single point.",
+          "duration_hint": null,
+          "skills": [
+            "core"
+          ],
+          "objects": [
+            {
+              "id": "phone",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.05
+              },
+              "label": "Your phone",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": -0.15
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_1",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 1",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_2",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 2",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.66,
+                  "y": 0.55
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_3",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 3",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.1,
+                  "y": -0.78
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "circle_1",
+              "kind": "circle",
+              "props": {
+                "kind": "circle",
+                "radius": 0.9731,
+                "filled": false
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "circle_2",
+              "kind": "circle",
+              "props": {
+                "kind": "circle",
+                "radius": 0.9621,
+                "filled": false
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.66,
+                  "y": 0.55
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "circle_3",
+              "kind": "circle",
+              "props": {
+                "kind": "circle",
+                "radius": 0.6379,
+                "filled": false
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.1,
+                  "y": -0.78
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            }
+          ],
+          "groups": [],
+          "relationships": [],
+          "layout": {
+            "kind": "centered",
+            "region": {
+              "min_x": -1.0,
+              "min_y": -1.0,
+              "max_x": 1.0,
+              "max_y": 1.0
+            },
+            "gap": 0.15,
+            "padding": 0.08,
+            "align": "center",
+            "columns": null,
+            "rows": null,
+            "radius": null,
+            "start_angle": 90.0,
+            "direction": "horizontal",
+            "slots": [],
+            "seed": 0
+          },
+          "camera": {
+            "initial": {
+              "center": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "width": 2.0
+            },
+            "auto_frame": false,
+            "min_width": 0.4,
+            "max_width": 3.0,
+            "follow": null,
+            "reset_at_end": false
+          },
+          "narration": [
+            {
+              "id": "third",
+              "role": "context",
+              "text": "A third satellite adds a third circle.",
+              "wpm": null,
+              "mentions": [],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            },
+            {
+              "id": "point",
+              "role": "context",
+              "text": "All three meet at exactly one point -- and that point is you.",
+              "wpm": null,
+              "mentions": [
+                "phone"
+              ],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            }
+          ],
+          "timeline": [
+            {
+              "id": "show_sats",
+              "op": "show",
+              "targets": [
+                "sat_1",
+                "sat_2",
+                "sat_3"
+              ],
+              "params": {},
+              "at": {
+                "at": "absolute",
+                "seconds": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.8
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_phone",
+              "op": "show",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "show_sats",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.5
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "draw_circles",
+              "op": "show",
+              "targets": [
+                "circle_1",
+                "circle_2",
+                "circle_3"
+              ],
+              "params": {
+                "style": "draw"
+              },
+              "at": {
+                "at": "after",
+                "cue": "show_phone",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.4
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "mark_point",
+              "op": "highlight",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "narration",
+                "segment": "point",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.0
+              },
+              "easing": null,
+              "why": null
+            }
+          ],
+          "transition_in": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "transition_out": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "background": null
+        },
+        {
+          "id": "intersection",
+          "name": "The fix",
+          "intent": "Zoom in on the meeting point the three distances agree on.",
+          "duration_hint": null,
+          "skills": [
+            "core"
+          ],
+          "objects": [
+            {
+              "id": "phone",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.05
+              },
+              "label": "Your phone",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": -0.15
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "circle_1",
+              "kind": "circle",
+              "props": {
+                "kind": "circle",
+                "radius": 0.9731,
+                "filled": false
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "circle_2",
+              "kind": "circle",
+              "props": {
+                "kind": "circle",
+                "radius": 0.9621,
+                "filled": false
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.66,
+                  "y": 0.55
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "circle_3",
+              "kind": "circle",
+              "props": {
+                "kind": "circle",
+                "radius": 0.6379,
+                "filled": false
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.1,
+                  "y": -0.78
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            }
+          ],
+          "groups": [],
+          "relationships": [],
+          "layout": {
+            "kind": "centered",
+            "region": {
+              "min_x": -1.0,
+              "min_y": -1.0,
+              "max_x": 1.0,
+              "max_y": 1.0
+            },
+            "gap": 0.15,
+            "padding": 0.08,
+            "align": "center",
+            "columns": null,
+            "rows": null,
+            "radius": null,
+            "start_angle": 90.0,
+            "direction": "horizontal",
+            "slots": [],
+            "seed": 0
+          },
+          "camera": {
+            "initial": {
+              "center": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "width": 2.0
+            },
+            "auto_frame": false,
+            "min_width": 0.4,
+            "max_width": 3.0,
+            "follow": null,
+            "reset_at_end": false
+          },
+          "narration": [
+            {
+              "id": "agree",
+              "role": "context",
+              "text": "The one place all three distances agree on is your location.",
+              "wpm": null,
+              "mentions": [],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            },
+            {
+              "id": "zoom",
+              "role": "context",
+              "text": "The phone settles on where the math meets.",
+              "wpm": null,
+              "mentions": [
+                "phone"
+              ],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            }
+          ],
+          "timeline": [
+            {
+              "id": "show_circles",
+              "op": "show",
+              "targets": [
+                "circle_1",
+                "circle_2",
+                "circle_3"
+              ],
+              "params": {
+                "style": "draw"
+              },
+              "at": {
+                "at": "absolute",
+                "seconds": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.0
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_phone",
+              "op": "show",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "show_circles",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.6
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "focus_phone",
+              "op": "focus",
+              "targets": [
+                "phone"
+              ],
+              "params": {
+                "padding": 0.4
+              },
+              "at": {
+                "at": "narration",
+                "segment": "zoom",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.5
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "pulse_phone",
+              "op": "highlight",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "focus_phone",
+                "gap": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.8
+              },
+              "easing": null,
+              "why": null
+            }
+          ],
+          "transition_in": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "transition_out": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "background": null
+        },
+        {
+          "id": "timing_error",
+          "name": "The catch",
+          "intent": "It all hinges on the clock: a tiny timing error is a huge distance error.",
+          "duration_hint": null,
+          "skills": [
+            "core"
+          ],
+          "objects": [
+            {
+              "id": "formula",
+              "kind": "text",
+              "props": {
+                "kind": "text",
+                "content": "distance = speed x time",
+                "role": "heading",
+                "align": "center"
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": 0.75
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_1",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 1",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "phone",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.05
+              },
+              "label": "Your phone",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": -0.15
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "circle_1",
+              "kind": "circle",
+              "props": {
+                "kind": "circle",
+                "radius": 0.9731,
+                "filled": false
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            }
+          ],
+          "groups": [],
+          "relationships": [],
+          "layout": {
+            "kind": "centered",
+            "region": {
+              "min_x": -1.0,
+              "min_y": -1.0,
+              "max_x": 1.0,
+              "max_y": 1.0
+            },
+            "gap": 0.15,
+            "padding": 0.08,
+            "align": "center",
+            "columns": null,
+            "rows": null,
+            "radius": null,
+            "start_angle": 90.0,
+            "direction": "horizontal",
+            "slots": [],
+            "seed": 0
+          },
+          "camera": {
+            "initial": {
+              "center": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "width": 2.0
+            },
+            "auto_frame": false,
+            "min_width": 0.4,
+            "max_width": 3.0,
+            "follow": null,
+            "reset_at_end": false
+          },
+          "narration": [
+            {
+              "id": "clock",
+              "role": "context",
+              "text": "But the whole trick rests on impeccably accurate clocks.",
+              "wpm": null,
+              "mentions": [],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            },
+            {
+              "id": "error",
+              "role": "context",
+              "text": "A billionth of a second off, and the distance is wrong by metres.",
+              "wpm": null,
+              "mentions": [
+                "formula"
+              ],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            }
+          ],
+          "timeline": [
+            {
+              "id": "show_formula",
+              "op": "show",
+              "targets": [
+                "formula"
+              ],
+              "params": {
+                "style": "write"
+              },
+              "at": {
+                "at": "narration",
+                "segment": "clock",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.0
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_sat",
+              "op": "show",
+              "targets": [
+                "sat_1"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "show_formula",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.5
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_phone",
+              "op": "show",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "show_sat",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.5
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_circle",
+              "op": "show",
+              "targets": [
+                "circle_1"
+              ],
+              "params": {
+                "style": "draw"
+              },
+              "at": {
+                "at": "after",
+                "cue": "show_phone",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.8
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "wobble",
+              "op": "highlight",
+              "targets": [
+                "circle_1"
+              ],
+              "params": {
+                "style": "flash"
+              },
+              "at": {
+                "at": "narration",
+                "segment": "error",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.0
+              },
+              "easing": null,
+              "why": null
+            }
+          ],
+          "transition_in": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "transition_out": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "background": null
+        },
+        {
+          "id": "pull_back",
+          "name": "The fourth",
+          "intent": "A fourth satellite solves the clock too; pull back on the finished fix.",
+          "duration_hint": null,
+          "skills": [
+            "core"
+          ],
+          "objects": [
+            {
+              "id": "phone",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.05
+              },
+              "label": "Your phone",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": -0.15
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_1",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 1",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": -0.62,
+                  "y": 0.6
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_2",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 2",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.66,
+                  "y": 0.55
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_3",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 3",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.1,
+                  "y": -0.78
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "sat_4",
+              "kind": "dot",
+              "props": {
+                "kind": "dot",
+                "radius": 0.04
+              },
+              "label": "Sat 4",
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.8,
+                  "y": -0.05
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            },
+            {
+              "id": "closing",
+              "kind": "text",
+              "props": {
+                "kind": "text",
+                "content": "Four satellites. One point.",
+                "role": "heading",
+                "align": "center"
+              },
+              "label": null,
+              "placement": {
+                "mode": "stage",
+                "point": {
+                  "x": 0.0,
+                  "y": -0.85
+                }
+              },
+              "style": {
+                "color": null,
+                "fill_color": null,
+                "opacity": 1.0,
+                "stroke_width": null,
+                "scale": 1.0,
+                "rotation": 0.0
+              },
+              "z": 0,
+              "tags": []
+            }
+          ],
+          "groups": [],
+          "relationships": [],
+          "layout": {
+            "kind": "centered",
+            "region": {
+              "min_x": -1.0,
+              "min_y": -1.0,
+              "max_x": 1.0,
+              "max_y": 1.0
+            },
+            "gap": 0.15,
+            "padding": 0.08,
+            "align": "center",
+            "columns": null,
+            "rows": null,
+            "radius": null,
+            "start_angle": 90.0,
+            "direction": "horizontal",
+            "slots": [],
+            "seed": 0
+          },
+          "camera": {
+            "initial": {
+              "center": {
+                "x": 0.0,
+                "y": 0.0
+              },
+              "width": 2.0
+            },
+            "auto_frame": false,
+            "min_width": 0.4,
+            "max_width": 3.0,
+            "follow": null,
+            "reset_at_end": false
+          },
+          "narration": [
+            {
+              "id": "fourth",
+              "role": "context",
+              "text": "So a fourth satellite is added to solve for the clock as well.",
+              "wpm": null,
+              "mentions": [],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            },
+            {
+              "id": "closing",
+              "role": "conclusion",
+              "text": "Four numbers, one point -- and your phone knows exactly where you are.",
+              "wpm": null,
+              "mentions": [
+                "phone"
+              ],
+              "claims": [],
+              "pause_after": 0.3,
+              "start": null,
+              "end": null
+            }
+          ],
+          "timeline": [
+            {
+              "id": "show_phone",
+              "op": "show",
+              "targets": [
+                "phone"
+              ],
+              "params": {},
+              "at": {
+                "at": "absolute",
+                "seconds": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 0.5
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_sats",
+              "op": "show",
+              "targets": [
+                "sat_1",
+                "sat_2",
+                "sat_3",
+                "sat_4"
+              ],
+              "params": {},
+              "at": {
+                "at": "after",
+                "cue": "show_phone",
+                "gap": 0.1
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.0
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "show_closing",
+              "op": "show",
+              "targets": [
+                "closing"
+              ],
+              "params": {
+                "style": "write"
+              },
+              "at": {
+                "at": "after",
+                "cue": "show_sats",
+                "gap": 0.2
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.0
+              },
+              "easing": null,
+              "why": null
+            },
+            {
+              "id": "pull_back",
+              "op": "zoom_to",
+              "targets": [
+                "sat_1",
+                "sat_2",
+                "sat_3",
+                "sat_4"
+              ],
+              "params": {
+                "padding": 0.3
+              },
+              "at": {
+                "at": "narration",
+                "segment": "closing",
+                "edge": "start",
+                "offset": 0.0
+              },
+              "duration": {
+                "kind": "seconds",
+                "seconds": 1.5
+              },
+              "easing": null,
+              "why": null
+            }
+          ],
+          "transition_in": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "transition_out": {
+            "kind": "cut",
+            "duration": 0.0
+          },
+          "background": null
+        }
+      ],
+      "audio": null
+    }
+  ],
+  "narration_wpm": 150.0
+}
