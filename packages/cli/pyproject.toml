@@ -1,0 +1,29 @@
+[project]
+name = "manorem-cli"
+version = "0.1.0"
+description = "The `manorem` command line: build, validate, compile, render, schema."
+requires-python = ">=3.13"
+dependencies = [
+    "manorem-core",
+    "manorem-ir",
+    "manorem-compiler",
+    "manorem-renderer",
+    "manorem-compositor",
+    "manorem-ai",
+    "typer>=0.15",
+]
+
+[project.scripts]
+manorem = "manorem_cli.app:main"
+
+[tool.uv.sources]
+manorem-core = { workspace = true }
+manorem-ir = { workspace = true }
+manorem-compiler = { workspace = true }
+manorem-renderer = { workspace = true }
+manorem-compositor = { workspace = true }
+manorem-ai = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
