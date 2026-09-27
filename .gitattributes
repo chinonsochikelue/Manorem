@@ -1,0 +1,18 @@
+# Normalize line endings across machines. The repo is developed on Windows and its
+# goldens are generated on Linux CI; without this, a checkout's CRLF would diff
+# against LF-committed blobs and, worse, shift the bytes that canonical-JSON hashes
+# and golden comparisons depend on. Store text as LF everywhere.
+* text=auto eol=lf
+
+# Binary assets: never touch their bytes.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.wav binary
+*.mp3 binary
+*.mp4 binary
+*.mkv binary
+
+# SVGs are text.
+*.svg text eol=lf
