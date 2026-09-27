@@ -1,0 +1,30 @@
+[project]
+name = "manorem-ai"
+version = "0.1.0"
+description = "AI pipeline for Manorem: research, story, script, visual plan, IR generation, repair"
+dependencies = [
+    "manorem-core",
+    "manorem-ir",
+    "manorem-skills",
+    "manorem-compiler",
+    "manorem-renderer",
+    "manorem-compositor",
+    "pydantic>=2.9",
+]
+
+[project.optional-dependencies]
+# The live Gemini backend. Left out of the default install so cassette/stub
+# replay -- all that M1's tests need -- works with no network client present.
+gemini = ["google-genai>=0.3"]
+
+[tool.uv.sources]
+manorem-core = { workspace = true }
+manorem-ir = { workspace = true }
+manorem-skills = { workspace = true }
+manorem-compiler = { workspace = true }
+manorem-renderer = { workspace = true }
+manorem-compositor = { workspace = true }
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
