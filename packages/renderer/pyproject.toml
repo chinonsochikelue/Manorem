@@ -1,0 +1,17 @@
+[project]
+name = "manorem-renderer"
+version = "0.1.0"
+description = "Manim renderer for Manorem"
+dependencies = [
+    "manorem-core",
+    "manorem-compiler",
+    "manim",
+]
+
+[tool.uv.sources]
+manorem-core = { workspace = true }
+manorem-compiler = { workspace = true }
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
