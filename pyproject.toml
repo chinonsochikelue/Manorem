@@ -38,7 +38,9 @@ ignore = [
 "tests/**" = ["ANN", "PLR", "ARG", "FBT"]
 # A CLI's boolean --flags are the interface, not a boolean-trap smell; Typer needs
 # them as command-signature defaults, so FBT does not apply to the command module.
-"packages/cli/src/manorem_cli/app.py" = ["FBT"]
+# For the same reason a verb's positional-arg count tracks its number of options, not
+# a design smell, so PLR0917 is off here too.
+"packages/cli/src/manorem_cli/app.py" = ["FBT", "PLR0917"]
 
 [tool.ruff.lint.flake8-bugbear]
 # Typer builds every argument spec by calling Argument/Option in the default -- that

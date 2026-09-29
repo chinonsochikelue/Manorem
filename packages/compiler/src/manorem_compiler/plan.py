@@ -139,6 +139,26 @@ class PlanBounds(BaseModel):
     def center(self) -> tuple[float, float]:
         return ((self.min_x + self.max_x) / 2.0, (self.min_y + self.max_y) / 2.0)
 
+    @property
+    def area(self) -> float:
+        return self.width * self.height
+
+    def intersection_area(self, other: PlanBounds) -> float:
+        """Area of overlap with ``other``; 0.0 when disjoint."""
+        dx = min(self.max_x, other.max_x) - max(self.min_x, other.min_x)
+        dy = min(self.max_y, other.max_y) - max(self.min_y, other.min_y)
+        if dx <= 0.0 or dy <= 0.0:
+            return 0.0
+        return dx * dy
+
+    def intersects(self, other: PlanBounds) -> bool:
+        return not (
+            self.max_x <= other.min_x
+            or other.max_x <= self.min_x
+            or self.max_y <= other.min_y
+            or other.max_y <= self.min_y
+        )
+
 
 class MobjectSpec(BaseModel):
     """One drawable, fully resolved: what it is, where it is, how big it ended up."""

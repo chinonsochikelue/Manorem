@@ -80,15 +80,22 @@ class Code(StrEnum):
     RND503_ASSET_NOT_FOUND = "RND503_ASSET_NOT_FOUND"
     RND504_PLAN_REJECTED = "RND504_PLAN_REJECTED"
 
-    # --- VQA6xx: visual quality (reserved; no implementations in M1) --------
-    VQA601_OBJECT_OVERLAP = "VQA601_OBJECT_OVERLAP"
-    VQA602_UNREADABLE_TEXT = "VQA602_UNREADABLE_TEXT"
-    VQA603_EXCESSIVE_DENSITY = "VQA603_EXCESSIVE_DENSITY"
-    VQA604_POOR_COMPOSITION = "VQA604_POOR_COMPOSITION"
-    VQA605_CAMERA_FRAMING = "VQA605_CAMERA_FRAMING"
-    VQA606_WEAK_HIERARCHY = "VQA606_WEAK_HIERARCHY"
-    VQA607_NARRATION_MISMATCH = "VQA607_NARRATION_MISMATCH"
-    VQA608_SCENE_DISCONTINUITY = "VQA608_SCENE_DISCONTINUITY"
+    # --- VQA6xx: visual quality (deterministic geometry + frame-sample checks) --
+    # Emitted by the Visual QA seam AFTER a render, never by the compiler. These are
+    # visual defects in a succeeded render, not semantic IR damage, so they are not in
+    # SEMANTIC_ERROR_CODES -- but error-severity VQA6xx findings still halt a build and
+    # route to bounded repair, because they name IR-fixable locations (pointer +
+    # object_id), never renderer internals. INFO-level codes describe a state worth
+    # recording without blocking.
+    VQA601_TEXT_OVERFLOW = "VQA601_TEXT_OVERFLOW"
+    VQA602_OBJECT_OFF_STAGE = "VQA602_OBJECT_OFF_STAGE"
+    VQA603_OBJECT_OVERLAP = "VQA603_OBJECT_OVERLAP"
+    VQA604_TINY_TEXT = "VQA604_TINY_TEXT"
+    VQA605_EMPTY_FRAME = "VQA605_EMPTY_FRAME"
+    VQA606_BAD_CONTRAST = "VQA606_BAD_CONTRAST"
+    VQA607_CUT_OFF_OBJECT = "VQA607_CUT_OFF_OBJECT"
+    VQA608_EXCESSIVE_DENSITY = "VQA608_EXCESSIVE_DENSITY"
+    VQA609_CAMERA_COMPOSITION = "VQA609_CAMERA_COMPOSITION"
 
     # --- MUX7xx: compositing (concat, audio mux, subtitles) -----------------
     MUX701_COMPOSITE_FAILED = "MUX701_COMPOSITE_FAILED"

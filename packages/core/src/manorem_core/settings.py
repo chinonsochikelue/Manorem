@@ -67,6 +67,13 @@ class Settings(BaseSettings):
         default=1.0, gt=0.0, description="Keyframe sampling rate for the Visual QA seam"
     )
 
+    # --- visual QA ----------------------------------------------------------
+    #: Off by default so ``build`` stays a renderer-only promise unless a command
+    #: explicitly asks for QA (``build --vqa``). When on, the pipeline assesses each
+    #: render with the deterministic geometric checks and routes error-severity
+    #: VQA6xx findings to the same bounded repair loop the semantic errors use.
+    vqa_enabled: bool = Field(default=False, description="Assess renders with GeometricVisualQA")
+
     # --- narration ----------------------------------------------------------
     narration_wpm: float = Field(
         default=150.0, gt=0.0, description="Placeholder pacing model until TTS lands"

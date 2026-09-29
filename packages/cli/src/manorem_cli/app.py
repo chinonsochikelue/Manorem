@@ -30,7 +30,14 @@ from manorem_compiler import CompileOptions, RenderPlan, compile_project
 from manorem_compositor import Compositor
 from manorem_core import ConfigError, DiagnosticBag, LocalFSStore, get_settings
 from manorem_ir import Project, export_schemas, schema_for, validate_project
-from manorem_renderer import ManimRenderer, RenderOptions, StubRenderer
+from manorem_renderer import (
+    GeometricVisualQA,
+    ManimRenderer,
+    RenderOptions,
+    StubRenderer,
+    assess_plan,
+    build_manifest,
+)
 
 app = typer.Typer(
     name="manorem",
@@ -106,6 +113,28 @@ def render(
 
 
 @app.command()
+def vqa(
+    plan: Path = typer.Argument(..., help="Path to a compiled RenderPlan JSON file."),
+    sample_rate: float | None = typer.Option(
+        None, "--sample-rate", help="Keyframe sampling rate in Hz (default: settings)."
+    ),
+) -> None:
+    """Assess a compiled RenderPlan for visual defects -- deterministic and offline.
+
+    The geometric checks read only the plan's world-space geometry (via the manifest
+    the compiler's geometry implies), so no render, no pixels and no network are
+    needed. Error-severity ``VQA6xx`` findings set a non-zero exit; warnings
+    (``VQA608``/``VQA609``) are reported but do not fail.
+    """
+    render_plan = load_model(plan, RenderPlan, label="vqa")
+    hz = sample_rate if sample_rate is not None else get_settings().frame_sample_hz
+    manifest = build_manifest(render_plan, sample_rate_hz=hz)
+    result = assess_plan(render_plan, manifest)
+    if report(DiagnosticBag(list(result.findings)), label="vqa"):
+        raise typer.Exit(code=1)
+
+
+@app.command()
 def schema(
     name: str | None = typer.Argument(None, help="project | scene. Omit for all schemas."),
     output: Path | None = typer.Option(None, "--output", "-o", help="Write schema files here."),
@@ -141,6 +170,9 @@ def build(
         None, "--corpus", "-c", help="Retrieved-document JSON array for provenance."
     ),
     output: Path = typer.Option(Path("out"), "--output", "-o", help="Directory for all artifacts."),
+    vqa: bool = typer.Option(
+        False, "--vqa", help="Assess each render with the geometric Visual QA and repair defects."
+    ),
 ) -> None:
     """Run the whole pipeline: research -> story -> script -> IR -> render -> video."""
     settings = get_settings()
@@ -154,6 +186,7 @@ def build(
         provider,
         FixtureResearchProvider(load_corpus(corpus)),
         store=LocalFSStore(output / "store"),
+        visual_qa=GeometricVisualQA() if (vqa or settings.vqa_enabled) else None,
     )
     try:
         result = pipeline.build(
@@ -176,10 +209,28 @@ def build(
     if video is None:
         typer.secho(f"build: artifacts in {output}, but the render did not complete", err=True)
         raise typer.Exit(code=1)
-    # M1 renders are NOT assessed for visual quality -- say so rather than imply a pass.
-    quality_note = "not assessed" if result.quality is None else "assessed"
+    if result.quality is None:
+        # QA was not run (default) -- say "not assessed" rather than imply a pass.
+        typer.secho(
+            f"build: wrote {video} (visual quality: not assessed)",
+            fg=typer.colors.GREEN,
+            err=True,
+        )
+        return
+    # QA ran: surface any finding the bounded repair loop could not clear, and fail
+    # loudly on error severity rather than shipping a video with a measured defect.
+    if report(DiagnosticBag(list(result.quality.findings)), label="vqa"):
+        typer.secho(
+            f"build: wrote {video}, but visual QA found unrepaired defects",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    attempts = result.repair_attempts
     typer.secho(
-        f"build: wrote {video} (visual quality: {quality_note})", fg=typer.colors.GREEN, err=True
+        f"build: wrote {video} (visual quality: assessed, {attempts} repair attempts)",
+        fg=typer.colors.GREEN,
+        err=True,
     )
 
 

@@ -23,6 +23,7 @@ runner = CliRunner()
 
 _GPS = Path(__file__).resolve().parents[3] / "examples" / "gps"
 _BROKEN_REF = _GPS / "ir_broken_ref.json"
+_VQA = Path(__file__).resolve().parents[3] / "examples" / "vqa"
 
 
 def _write_project(tmp_path: Path) -> Path:
@@ -34,7 +35,7 @@ def _write_project(tmp_path: Path) -> Path:
 def test_help_lists_every_verb() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    for verb in ("validate", "compile", "render", "schema", "build"):
+    for verb in ("validate", "compile", "render", "vqa", "schema", "build"):
         assert verb in result.output
 
 
@@ -106,6 +107,26 @@ def test_render_stub_engine_writes_mp4_with_sidecars(tmp_path: Path) -> None:
     assert out.exists()
     assert out.with_suffix(".srt").exists()
     assert out.with_suffix(".vtt").exists()
+
+
+def test_vqa_passes_a_clean_plan() -> None:
+    # The offline geometric assessment finds nothing to complain about.
+    result = runner.invoke(app, ["vqa", str(_VQA / "good" / "plan.json")])
+    assert result.exit_code == 0
+
+
+def test_vqa_fails_on_an_error_severity_defect() -> None:
+    # A measured visual defect sets a non-zero exit and names its VQA6xx code.
+    result = runner.invoke(app, ["vqa", str(_VQA / "overflow" / "plan.json")])
+    assert result.exit_code == 1
+    assert "VQA601" in result.output
+
+
+def test_vqa_warning_only_plan_still_passes() -> None:
+    # VQA608 is a warning: reported, but never a build failure.
+    result = runner.invoke(app, ["vqa", str(_VQA / "density" / "plan.json")])
+    assert result.exit_code == 0
+    assert "VQA608" in result.output
 
 
 def test_build_rejects_the_stub_provider(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

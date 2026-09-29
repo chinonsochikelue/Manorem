@@ -1,0 +1,302 @@
+{
+  "plan_version": "1.0",
+  "project_id": "vqa_density",
+  "format": {
+    "aspect": "16:9",
+    "width": 854,
+    "height": 480,
+    "fps": 15,
+    "bitrate_kbps": null
+  },
+  "style": {
+    "background": "#0E1116",
+    "primary": "#5AB2FF",
+    "secondary": "#FFD166",
+    "accent": "#EF476F",
+    "muted": "#6B7280",
+    "text": "#F5F7FA",
+    "success": "#06D6A0",
+    "title_size": 0.22,
+    "heading_size": 0.15,
+    "body_size": 0.1,
+    "caption_size": 0.07,
+    "stroke_width": 2.5,
+    "default_op_duration": 1.0
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "duration_frames": 15,
+      "background": "#0E1116",
+      "mobjects": [
+        {
+          "id": "d0",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": -6.05,
+            "min_y": -0.05,
+            "max_x": -5.95,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d1",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": -5.1499999999999995,
+            "min_y": -0.05,
+            "max_x": -5.05,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d2",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": -4.25,
+            "min_y": -0.05,
+            "max_x": -4.15,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d3",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": -3.3499999999999996,
+            "min_y": -0.05,
+            "max_x": -3.25,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d4",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": -2.4499999999999997,
+            "min_y": -0.05,
+            "max_x": -2.35,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d5",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": -1.55,
+            "min_y": -0.05,
+            "max_x": -1.45,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d6",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": -0.6499999999999997,
+            "min_y": -0.05,
+            "max_x": -0.5499999999999996,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d7",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": 0.24999999999999983,
+            "min_y": -0.05,
+            "max_x": 0.3499999999999998,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d8",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": 1.1500000000000001,
+            "min_y": -0.05,
+            "max_x": 1.2500000000000002,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d9",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": 2.05,
+            "min_y": -0.05,
+            "max_x": 2.1499999999999995,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d10",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": 2.95,
+            "min_y": -0.05,
+            "max_x": 3.05,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d11",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": 3.8500000000000005,
+            "min_y": -0.05,
+            "max_x": 3.95,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        },
+        {
+          "id": "d12",
+          "primitive": "dot",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": 4.750000000000001,
+            "min_y": -0.05,
+            "max_x": 4.8500000000000005,
+            "max_y": 0.05
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        }
+      ],
+      "tracks": [],
+      "camera": {
+        "target_id": "__camera__",
+        "events": []
+      },
+      "audio_cues": [],
+      "transition_out_frames": 0
+    }
+  ]
+}

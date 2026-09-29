@@ -16,10 +16,12 @@ discipline:
 * **Invalid IR never reaches the renderer.** Compilation runs the bounded repair
   loop; if semantic errors survive it, the pipeline raises rather than rendering a
   plan that dropped a satellite.
-* **Repair patches, never rewrites.** Only semantic diagnostics, grouped by
-  scene, reach :class:`~manorem_ai.agents.RepairAgent`, and every patch is applied
+* **Repair patches, never rewrites.** Semantic diagnostics (pre-render) and
+  error-severity ``VQA6xx`` findings (post-render) are both grouped by scene and
+  routed to :class:`~manorem_ai.agents.RepairAgent`, and every patch is applied
   through :func:`~manorem_ai.patch.apply_scene_patch`, which refuses a patch that
-  changes which entities exist. The loop is capped at ``max_repair_attempts``.
+  changes which entities exist. Both loops patch the *IR* -- never the plan, never
+  the pixels -- and each is capped at ``max_repair_attempts``.
 """
 
 from __future__ import annotations
@@ -60,6 +62,7 @@ from manorem_core import (
     ManoremError,
     ObjectStore,
     Settings,
+    Severity,
     canonical_bytes,
     get_logger,
     get_settings,
@@ -67,7 +70,14 @@ from manorem_core import (
     slugify,
 )
 from manorem_ir import Aspect, Episode, FormatSpec, Project, Scene, StyleTokens
-from manorem_renderer import QualityReport, Renderer, RenderOptions, RenderResult, StubRenderer
+from manorem_renderer import (
+    VQA_ERROR_CODES,
+    QualityReport,
+    Renderer,
+    RenderOptions,
+    RenderResult,
+    StubRenderer,
+)
 from manorem_skills import SkillRegistry, default_registry, vocabulary_prompt
 
 __all__ = ["Pipeline", "PipelineError", "PipelineResult"]
@@ -202,10 +212,13 @@ class Pipeline:
                 "compilation left semantic errors the repair loop could not clear: "
                 + "; ".join(str(d) for d in bag.errors)
             )
+
+        project, plan, render, report, composition, visual_attempts = self._render_qa_repair(
+            project, plan, options, work
+        )
         digests["ir"] = self._persist(project)
         digests["renderplan"] = self._persist(plan)
 
-        render, report, composition = self._render_and_composite(plan, work)
         return PipelineResult(
             idea=idea,
             documents=documents,
@@ -220,7 +233,7 @@ class Pipeline:
             render=render,
             quality=report,
             composition=composition,
-            repair_attempts=attempts,
+            repair_attempts=attempts + visual_attempts,
             digests=digests,
         )
 
@@ -353,6 +366,58 @@ class Pipeline:
         return project.model_copy(update={"episodes": episodes})
 
     # -- render, QA seam, composite -------------------------------------------
+
+    def _render_qa_repair(
+        self, project: Project, plan: RenderPlan, options: CompileOptions, workspace: Path
+    ) -> tuple[
+        Project, RenderPlan, RenderResult, QualityReport | None, CompositionResult | None, int
+    ]:
+        """Render, assess, and while error-severity VQA findings remain, repair and rerun.
+
+        This is the *post-render* repair loop, and it is deliberately separate from
+        :meth:`_compile_with_repair`. A visual defect -- text off-stage, two mobjects
+        colliding, copy too small to read -- is not a semantic error and never surfaces
+        pre-render, so VQA6xx codes are absent from
+        :data:`~manorem_core.SEMANTIC_ERROR_CODES`. Here we select exactly the
+        error-severity VQA findings (:data:`~manorem_renderer.VQA_ERROR_CODES`), group
+        them by scene, and patch the **IR** through the same :class:`RepairAgent` and
+        :func:`apply_scene_patch` the semantic loop uses -- never the plan and never the
+        pixels, because the IR is the source of truth. Each repaired project is
+        recompiled (clearing any semantic error the patch introduced) and rerendered,
+        then reassessed. Bounded by ``max_repair_attempts``; the loop also stops early
+        when a round patches nothing.
+
+        Under M1's :class:`~manorem_ai.quality.NoopVisualQA` the report is ``None`` and
+        the loop never runs -- the render is *not assessed*, and nothing gates on it.
+        """
+        render, report, composition = self._render_and_composite(plan, workspace)
+        attempts = 0
+        while (
+            report is not None
+            and attempts < self._settings.max_repair_attempts
+            and any(f.severity is Severity.ERROR for f in report.findings)
+        ):
+            visual_errors = [
+                f
+                for f in report.findings
+                if f.severity is Severity.ERROR and f.code in VQA_ERROR_CODES
+            ]
+            if not visual_errors:
+                break
+            attempts += 1
+            repaired = self._repair_scenes(project, visual_errors)
+            if repaired is project:
+                break
+            project = repaired
+            project, plan, bag, _ = self._compile_with_repair(project, options)
+            if bag.has_errors:
+                raise PipelineError(
+                    "repairing a visual defect reintroduced semantic errors the repair "
+                    "loop could not clear: " + "; ".join(str(d) for d in bag.errors)
+                )
+            _LOG.info("visual_repair.applied", attempt=attempts, findings=len(visual_errors))
+            render, report, composition = self._render_and_composite(plan, workspace)
+        return project, plan, render, report, composition, attempts
 
     def _render_and_composite(
         self, plan: RenderPlan, workspace: Path

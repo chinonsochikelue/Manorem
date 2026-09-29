@@ -37,11 +37,20 @@ from manorem_renderer.results import (
     ScenePlanManifest,
 )
 from manorem_renderer.stub import StubRenderer
+from manorem_renderer.vqa import (
+    VQA_ERROR_CODES,
+    GeometricVisualQA,
+    VQAConfig,
+    VQAReport,
+    assess_plan,
+)
 
 __all__ = [
     "MANIM_FRAME_HEIGHT",
+    "VQA_ERROR_CODES",
     "Capability",
     "FrameManifest",
+    "GeometricVisualQA",
     "ManimGLRenderer",
     "ManimRenderer",
     "MobjectSnapshot",
@@ -53,7 +62,10 @@ __all__ = [
     "Renderer",
     "ScenePlanManifest",
     "StubRenderer",
+    "VQAConfig",
+    "VQAReport",
     "WebGLRenderer",
+    "assess_plan",
     "build_manifest",
     "sample_frames",
 ]

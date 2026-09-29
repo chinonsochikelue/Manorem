@@ -1,0 +1,62 @@
+{
+  "plan_version": "1.0",
+  "project_id": "vqa_cut_off",
+  "format": {
+    "aspect": "16:9",
+    "width": 854,
+    "height": 480,
+    "fps": 15,
+    "bitrate_kbps": null
+  },
+  "style": {
+    "background": "#0E1116",
+    "primary": "#5AB2FF",
+    "secondary": "#FFD166",
+    "accent": "#EF476F",
+    "muted": "#6B7280",
+    "text": "#F5F7FA",
+    "success": "#06D6A0",
+    "title_size": 0.22,
+    "heading_size": 0.15,
+    "body_size": 0.1,
+    "caption_size": 0.07,
+    "stroke_width": 2.5,
+    "default_op_duration": 1.0
+  },
+  "scenes": [
+    {
+      "id": "s1",
+      "duration_frames": 15,
+      "background": "#0E1116",
+      "mobjects": [
+        {
+          "id": "planet",
+          "primitive": "circle",
+          "args": {},
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bounds": {
+            "min_x": 5.61,
+            "min_y": -1.5,
+            "max_x": 8.61,
+            "max_y": 1.5
+          },
+          "z_index": 0,
+          "initial_visible": true,
+          "members": [],
+          "synthetic": false
+        }
+      ],
+      "tracks": [],
+      "camera": {
+        "target_id": "__camera__",
+        "events": []
+      },
+      "audio_cues": [],
+      "transition_out_frames": 0
+    }
+  ]
+}
