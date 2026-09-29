@@ -37,11 +37,12 @@ de ce dépôt.
 
 ## État
 
-Le Milestone 1 est terminé : les huit paquets prévus par la configuration du
-workspace sont implémentés, et `manorem build` mène d'une idée à une vidéo
-sous-titrée hors ligne. Ce qui existe est complet, strictement typé et testé
-(927 tests, `mypy --strict` sans erreur) ; rien n'est esquissé en faisant croire
-qu'il est plus abouti qu'il ne l'est.
+Les Milestones 1 et 2 sont terminés : les huit paquets prévus par la configuration
+du workspace sont implémentés, `manorem build` mène d'une idée à une vidéo
+sous-titrée hors ligne, et Visual QA (`VQA6xx`) évalue désormais un rendu terminé à
+la recherche de défauts géométriques et les renvoie vers la réparation de l'IR. Ce
+qui existe est complet, strictement typé et testé (1 000 tests, `mypy --strict` sans
+erreur) ; rien n'est esquissé en faisant croire qu'il est plus abouti qu'il ne l'est.
 
 | Paquet | État | Contenu |
 | --- | --- | --- |
@@ -49,24 +50,27 @@ qu'il est plus abouti qu'il ne l'est.
 | `manorem-ir` | implémenté | le Visual IR : modèles, export JSON Schema, validation à trois niveaux, résolution symbolique du temps |
 | `manorem-skills` | implémenté | paquets de vocabulaire métier (types d'objets, opérations, contraintes supplémentaires) |
 | `manorem-compiler` | implémenté | IR → `RenderPlan` : normalisation, résolution de layout, timing, caméra, autofix |
-| `manorem-renderer` | implémenté | worker Manim isolé (et un stub) produisant une vidéo muette par scène |
+| `manorem-renderer` | implémenté | worker Manim isolé (et un stub) produisant une vidéo muette par scène, plus le Visual QA géométrique |
 | `manorem-compositor` | implémenté | concaténation des scènes, transitions, timeline audio, sous-titres SRT/VTT |
-| `manorem-ai` | implémenté | fournisseurs (Gemini / cassettes enregistrées / stub), agents de planification, réparation bornée |
-| `manorem-cli` | implémenté | le point d'entrée `manorem` : `build`, `validate`, `compile`, `render`, `schema` |
+| `manorem-ai` | implémenté | fournisseurs (Gemini / Anthropic / OpenAI / bascule de pool de clés / cassettes enregistrées / stub), agents de planification, réparation bornée |
+| `manorem-cli` | implémenté | le point d'entrée `manorem` : `build`, `validate`, `compile`, `render`, `vqa`, `schema` |
 
-Honnête sur les limites : les rendus du Milestone 1 ne sont **pas évalués pour leur
-qualité visuelle** — `manorem build` rapporte `quality=None`, jamais « c'est réussi »,
-et l'étape Visual QA (`VQA6xx`) est conçue mais pas encore implémentée. La validation
-de provenance prouve qu'une URL citée a réellement été récupérée, **non** que la source
-étaie l'affirmation. Il n'y a pas de TTS : les temps de narration sont estimés à partir
-d'un modèle de mots par minute, la vidéo est donc muette mais rythmée, avec des
-sous-titres synchronisés. `examples/scratch/scene.py` est un fichier Manim écrit à la
-main, conservé pour référence et hors pipeline.
+Honnête sur les limites : Visual QA mesure des défauts **géométriques** — texte hors
+de la scène, objets qui se chevauchent, texte illisible tant il est petit, mauvais
+contraste sur le fond déclaré — pas la qualité artistique ; il n'y a délibérément
+aucun « score de qualité visuelle » global, et un rapport propre signifie *aucun
+défaut mesuré*, pas *bonne vidéo*. Sauf si on lui demande d'évaluer
+(`manorem build --vqa`), un rendu rapporte encore `quality=None` plutôt que « c'est
+réussi ». La validation de provenance prouve qu'une URL citée a réellement été
+récupérée, **non** que la source étaie l'affirmation. Il n'y a pas de TTS : les temps
+de narration sont estimés à partir d'un modèle de mots par minute, la vidéo est donc
+muette mais rythmée, avec des sous-titres synchronisés. `examples/scratch/scene.py`
+est un fichier Manim écrit à la main, conservé pour référence et hors pipeline.
 
 ## La forme de l'ensemble
 
 ```
-idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► composite ──► video
+idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► VQA ──► composite ──► video
                                             ▲            │
                                             └── repair ◄─┘   (borné, piloté par les diagnostics)
 ```
@@ -232,8 +236,8 @@ Trois niveaux, chacun signalant là où un défaut est réellement détectable :
 
 Les trois sont calculés depuis l'IR et le plan résolu, jamais depuis des pixels. Ils
 établissent qu'un plan est *bien formé*, ce qui n'est pas la même affirmation que
-*c'est réussi* — le jugement perceptif appartient à l'étape Visual QA et à ses codes
-`VQA6xx`.
+*c'est réussi* — savoir si l'image finie se lit vraiment se mesure après le rendu, à
+l'étape Visual QA et via ses codes `VQA6xx`.
 
 Un constat nomme un code, une sévérité et un pointeur dans le document fautif. Pour
 la scène ci-dessus dont le cue `pulse` viserait par erreur `"phones"` :
@@ -253,7 +257,7 @@ Les codes sont namespacés par l'étape qui les lève :
 | `IR3xx` | lints de rythme et de géométrie |
 | `CMP4xx` | compilation |
 | `RND5xx` | rendu |
-| `VQA6xx` | qualité visuelle (réservé) |
+| `VQA6xx` | qualité visuelle |
 | `MUX7xx` | composition |
 | `RES8xx` | provenance de recherche |
 
@@ -292,22 +296,26 @@ au plus 2 tentatives.
 
 ## Utiliser la CLI
 
-`manorem`, ce sont cinq verbes sur un même pipeline. `validate` et `compile` opèrent
-sur un projet Visual IR, `render` sur un `RenderPlan` compilé, `schema` exporte le JSON
-Schema, et `build` exécute tout le pipeline de l'idée à la vidéo hors ligne.
+`manorem`, ce sont six verbes sur un même pipeline. `validate` et `compile` opèrent
+sur un projet Visual IR, `render` et `vqa` sur un `RenderPlan` compilé, `schema`
+exporte le JSON Schema, et `build` exécute tout le pipeline de l'idée à la vidéo hors
+ligne.
 
 ```bash
 manorem validate examples/gps/ir.json
 manorem compile examples/gps/ir.json --aspect 16:9 -o plan.json
 manorem render plan.json --quality draft -o gps.mp4
-manorem build "How GPS determines your location." --aspect 16:9 -o out/
+manorem vqa plan.json
+manorem build "How GPS determines your location." --aspect 16:9 --vqa -o out/
 ```
 
 `build` écrit chaque artefact intermédiaire — `brief.json`, `outline.json`,
 `script.json`, `plan/plan_*.json`, `ir.json`, `renderplan.json` — à côté du `gps.mp4`
 final et de ses sidecars `.srt` / `.vtt`, si bien que chaque étape est inspectable et
 adressée par contenu. `render` accepte `--engine stub` pour des images en couleur unie
-quand on veut exercer le pipeline sans invoquer Manim.
+quand on veut exercer le pipeline sans invoquer Manim. `vqa` évalue un plan déjà
+compilé à la recherche de défauts `VQA6xx` hors ligne, et `build --vqa` intègre cette
+évaluation dans le pipeline, réparant les défauts géométriques qu'il trouve.
 
 Un IR sémantiquement cassé échoue bruyamment et ne rend rien — le garde-fou sur lequel
 repose toute la conception :

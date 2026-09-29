@@ -37,10 +37,11 @@ repository exists to enforce.
 
 ## Status
 
-Milestone 1 is complete: all eight packages the workspace anticipates are
-implemented, and `manorem build` takes an idea to a captioned video offline. What
-exists is complete, strictly typed and tested (927 tests, `mypy --strict` clean);
-nothing is stubbed out pretending to be more than it is.
+Milestones 1 and 2 are complete: all eight packages the workspace anticipates are
+implemented, `manorem build` takes an idea to a captioned video offline, and Visual
+QA (`VQA6xx`) now assesses a finished render for geometric defects and routes them
+back to IR repair. What exists is complete, strictly typed and tested (1,000 tests,
+`mypy --strict` clean); nothing is stubbed out pretending to be more than it is.
 
 | Package | State | Contents |
 | --- | --- | --- |
@@ -48,23 +49,26 @@ nothing is stubbed out pretending to be more than it is.
 | `manorem-ir` | implemented | the Visual IR: models, JSON Schema export, three-tier validation, symbolic timing resolution |
 | `manorem-skills` | implemented | domain vocabulary packs (extra object kinds, operations, constraints) |
 | `manorem-compiler` | implemented | IR → `RenderPlan`: normalization, layout solving, timing, camera, autofix |
-| `manorem-renderer` | implemented | sandboxed Manim worker (and a stub) producing silent per-scene video |
+| `manorem-renderer` | implemented | sandboxed Manim worker (and a stub) producing silent per-scene video, plus geometric Visual QA |
 | `manorem-compositor` | implemented | scene concatenation, transitions, audio timeline, SRT/VTT subtitles |
-| `manorem-ai` | implemented | providers (Gemini / recorded cassettes / stub), planning agents, bounded repair |
-| `manorem-cli` | implemented | the `manorem` entry point: `build`, `validate`, `compile`, `render`, `schema` |
+| `manorem-ai` | implemented | providers (Gemini / Anthropic / OpenAI / key-pool failover / recorded cassettes / stub), planning agents, bounded repair |
+| `manorem-cli` | implemented | the `manorem` entry point: `build`, `validate`, `compile`, `render`, `vqa`, `schema` |
 
-Honest about the edges: Milestone 1 renders are **not assessed for visual quality**
-— `manorem build` reports `quality=None`, never "looks good", and the Visual QA
-stage (`VQA6xx`) is designed in but not yet implemented. Provenance validation
-proves a cited URL was actually retrieved, **not** that the source supports the
-claim. There is no TTS: narration timings are estimated from a words-per-minute
-model, so the video is silent-but-timed with synced subtitles. `examples/scratch/scene.py`
-is a hand-written Manim file kept for reference, not part of the pipeline.
+Honest about the edges: Visual QA measures **geometric** defects — text off the
+stage, colliding objects, illegibly small copy, poor contrast against the declared
+background — not artistic quality; there is deliberately no overall "visual quality
+score", and a clean report means *no measured defect*, not *good video*. Unless it is
+asked to assess (`manorem build --vqa`), a render still reports `quality=None` rather
+than "looks good". Provenance validation proves a cited URL was actually retrieved,
+**not** that the source supports the claim. There is no TTS: narration timings are
+estimated from a words-per-minute model, so the video is silent-but-timed with synced
+subtitles. `examples/scratch/scene.py` is a hand-written Manim file kept for
+reference, not part of the pipeline.
 
 ## The shape of the thing
 
 ```
-idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► composite ──► video
+idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► VQA ──► composite ──► video
                                             ▲            │
                                             └── repair ◄─┘   (bounded, diagnostic-driven)
 ```
@@ -225,7 +229,8 @@ Three tiers, each reporting at the level where a fault is actually detectable:
 
 All three are computed from the IR and the solved plan, never from pixels. They
 establish that a plan is *well-formed*, which is a different claim from *looks
-good* — perceptual judgement belongs to the Visual QA stage and its `VQA6xx` codes.
+good* — whether the finished frame actually reads is measured after rendering by the
+Visual QA stage and its `VQA6xx` codes.
 
 A finding names a code, a severity and a pointer into the offending document. Given
 the scene above with the `pulse` cue mistyped to target `"phones"`:
@@ -245,7 +250,7 @@ Codes are namespaced by the stage that raises them:
 | `IR3xx` | pacing and geometry lints |
 | `CMP4xx` | compile |
 | `RND5xx` | render |
-| `VQA6xx` | visual quality (reserved) |
+| `VQA6xx` | visual quality |
 | `MUX7xx` | compositing |
 | `RES8xx` | research provenance |
 
@@ -282,22 +287,25 @@ and the repair loop to at most 2 attempts.
 
 ## Using the CLI
 
-`manorem` is five verbs over one pipeline. `validate` and `compile` operate on a
-Visual IR project, `render` on a compiled `RenderPlan`, `schema` exports the JSON
-Schema, and `build` runs the whole idea-to-video pipeline offline.
+`manorem` is six verbs over one pipeline. `validate` and `compile` operate on a
+Visual IR project, `render` and `vqa` on a compiled `RenderPlan`, `schema` exports
+the JSON Schema, and `build` runs the whole idea-to-video pipeline offline.
 
 ```bash
 manorem validate examples/gps/ir.json
 manorem compile examples/gps/ir.json --aspect 16:9 -o plan.json
 manorem render plan.json --quality draft -o gps.mp4
-manorem build "How GPS determines your location." --aspect 16:9 -o out/
+manorem vqa plan.json
+manorem build "How GPS determines your location." --aspect 16:9 --vqa -o out/
 ```
 
 `build` writes every intermediate artifact — `brief.json`, `outline.json`,
 `script.json`, `plan/plan_*.json`, `ir.json`, `renderplan.json` — beside the final
 `gps.mp4` and its `.srt` / `.vtt` sidecars, so each stage is inspectable and
 content-addressed. `render` accepts `--engine stub` for solid-colour frames when
-you want the pipeline exercised without invoking Manim.
+you want the pipeline exercised without invoking Manim. `vqa` assesses an
+already-compiled plan for `VQA6xx` defects offline, and `build --vqa` folds that
+assessment into the pipeline, repairing the geometric defects it finds.
 
 A semantically broken IR fails loudly and renders nothing — the guardrail the whole
 design turns on:

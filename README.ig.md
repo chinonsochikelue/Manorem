@@ -40,11 +40,12 @@ na repository a.
 
 ## Ọnọdụ
 
-Ọ zuola Milestone 1: ngwugwu asatọ niile nke nhazi workspace na-atụ anya ka
-arụzuru, `manorem build` na-ewerekwa echiche mepụta vidiyo nwere ederede n'enweghị
-ịntanetị. Ihe dị adị zuru ezu, e depụtara ụdị ya n'ụzọ siri ike, e nwekwara nnwale
-maka ya (nnwale 927, `mypy --strict` dị ọcha); ihe na-adịghị adị, a naghị eme ka o
-yie ka ọ dị adị.
+Ọ zuola Milestone 1 na 2: ngwugwu asatọ niile nke nhazi workspace na-atụ anya ka
+arụzuru, `manorem build` na-ewere echiche mepụta vidiyo nwere ederede n'enweghị
+ịntanetị, Visual QA (`VQA6xx`) na-enyochakwa ugbu a vidiyo e mechara maka ntụpọ
+geometry ma bughachi ha na nrụzi IR. Ihe dị adị zuru ezu, e depụtara ụdị ya n'ụzọ
+siri ike, e nwekwara nnwale maka ya (nnwale 1,000, `mypy --strict` dị ọcha); ihe
+na-adịghị adị, a naghị eme ka o yie ka ọ dị adị.
 
 | Ngwugwu | Ọnọdụ | Ihe dị n'ime |
 | --- | --- | --- |
@@ -52,24 +53,27 @@ yie ka ọ dị adị.
 | `manorem-ir` | arụzuru | Visual IR: models, mbupụ JSON Schema, nnyocha ọkwa atọ, idozi oge site n'akara |
 | `manorem-skills` | arụzuru | ngwugwu okwu maka ngalaba (ụdị object ọzọ, ọrụ, mmachi) |
 | `manorem-compiler` | arụzuru | IR → `RenderPlan`: nhazi, idozi layout, oge, camera, autofix |
-| `manorem-renderer` | arụzuru | onye ọrụ Manim e kpuchiri (na stub) nke na-emepụta vidiyo na-enweghị ụda maka scene ọ bụla |
+| `manorem-renderer` | arụzuru | onye ọrụ Manim e kpuchiri (na stub) nke na-emepụta vidiyo na-enweghị ụda maka scene ọ bụla, gbakwụnye Visual QA geometry |
 | `manorem-compositor` | arụzuru | ijikọta scene, mgbanwe, timeline ụda, ederede SRT/VTT |
-| `manorem-ai` | arụzuru | ndị na-eweta (Gemini / cassette e dekọrọ / stub), ndị agent nhazi atụmatụ, nrụzi nwere oke |
-| `manorem-cli` | arụzuru | ọnụ ụzọ `manorem`: `build`, `validate`, `compile`, `render`, `schema` |
+| `manorem-ai` | arụzuru | ndị na-eweta (Gemini / Anthropic / OpenAI / key-pool failover / cassette e dekọrọ / stub), ndị agent nhazi atụmatụ, nrụzi nwere oke |
+| `manorem-cli` | arụzuru | ọnụ ụzọ `manorem`: `build`, `validate`, `compile`, `render`, `vqa`, `schema` |
 
-Eziokwu banyere akụkụ ọnụ: a **naghị enyocha ogo anya** nke ihe Milestone 1
-na-emepụta — `manorem build` na-akọ `quality=None`, ọ dịghị mgbe ọ na-asị "ọ mara
-mma", ọkwa Visual QA (`VQA6xx`) ka e mere atụmatụ ya mana emebeghị ya. Nnyocha
-provenance na-egosi na e nwetara URL e hotara n'ezie, **ọ bụghị** na isi mmalite ahụ
-na-akwado nkwuwa okwu ahụ. Enweghị TTS: a na-eji ụdị okwu-kwa-nkeji tụọ oge okwu
-nkọwa, ya mere vidiyo ahụ na-agbachi nkịtị mana e kenyere ya oge nwere ederede a
-hazikọtara. `examples/scratch/scene.py` bụ faịlụ Manim e ji aka dee, e debere ya maka
-ntụaka, ọ bụghị akụkụ nke usoro a.
+Eziokwu banyere akụkụ ọnụ: Visual QA na-atụ **ntụpọ geometry** — ederede pụọ na
+stage, ihe na-akpakọrịta, ederede pere mpe nke a na-apụghị ịgụ, ọdịiche ụcha adịghị
+mma megide background e kwuru — ọ bụghị ogo nka; e nweghị "visual quality score" ọ
+bụla n'ozuzu ya n'ụzọ e ji aka mee, ọ bụ na akụkọ dị ọcha pụtara *ọ dịghị ntụpọ a
+tụrụ*, ọ bụghị *ezigbo vidiyo*. Ọ gwụghị ma a rịọ ya ka ọ nyochaa
+(`manorem build --vqa`), vidiyo ka na-akọ `quality=None` kama ị sị "ọ mara mma".
+Nnyocha provenance na-egosi na e nwetara URL e hotara n'ezie, **ọ bụghị** na isi
+mmalite ahụ na-akwado nkwuwa okwu ahụ. Enweghị TTS: a na-eji ụdị okwu-kwa-nkeji tụọ
+oge okwu nkọwa, ya mere vidiyo ahụ na-agbachi nkịtị mana e kenyere ya oge nwere
+ederede a hazikọtara. `examples/scratch/scene.py` bụ faịlụ Manim e ji aka dee, e
+debere ya maka ntụaka, ọ bụghị akụkụ nke usoro a.
 
 ## Ọdịdị nke ihe ahụ
 
 ```
-idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► composite ──► video
+idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► VQA ──► composite ──► video
                                             ▲            │
                                             └── repair ◄─┘   (nwere oke, diagnostic na-eduzi ya)
 ```
@@ -232,8 +236,9 @@ na-ekwupụta ụdị object ọhụrụ kama.
   Ịdọ aka ná ntị ka ọ bụ, mana iwu nwere ike mee ka ọ bụrụ njehie.
 
 A na-esite na IR na plan e dozirila gụta ha atọ, ọ bụghị site na pixel. Ha na-egosi
-na plan *zuru ezu n'ọdịdị*, nke dị iche na ikwu na *ọ mara mma* — ikpe nke anya bụ
-ọrụ ọkwa Visual QA na koodu `VQA6xx` ya.
+na plan *zuru ezu n'ọdịdị*, nke dị iche na ikwu na *ọ mara mma* — ma frame e mechara
+ọ na-apụta nke ọma ka a na-atụ mgbe nrenda gasịrị site na ọkwa Visual QA na koodu
+`VQA6xx` ya.
 
 Ihe a chọpụtara na-akpọ koodu, ogo njehie, na pointer n'ime akwụkwọ mejọrọ. Were
 scene dị n'elu ebe e dehiere `pulse` cue ka o chee `"phones"`:
@@ -253,7 +258,7 @@ Koodu ọ bụla nwere namespace nke ọkwa welitere ya:
 | `IR3xx` | pacing na geometry lints |
 | `CMP4xx` | compile |
 | `RND5xx` | render |
-| `VQA6xx` | visual quality (e debere ya) |
+| `VQA6xx` | visual quality |
 | `MUX7xx` | ijikọta |
 | `RES8xx` | provenance nnyocha |
 
@@ -291,22 +296,25 @@ chọ API key), ogo nrenda bụ `draft`, ma usoro nrụzi na-agbalị ihe kacha 
 
 ## Iji CLI
 
-`manorem` bụ ngwaa ise n'otu usoro. `validate` na `compile` na-arụ ọrụ na project
-Visual IR, `render` na-arụ na `RenderPlan` e chịkọtara, `schema` na-ebupụ JSON
-Schema, `build` na-agba usoro echiche-ruo-vidiyo dum n'enweghị ịntanetị.
+`manorem` bụ ngwaa isii n'otu usoro. `validate` na `compile` na-arụ ọrụ na project
+Visual IR, `render` na `vqa` na-arụ na `RenderPlan` e chịkọtara, `schema` na-ebupụ
+JSON Schema, `build` na-agba usoro echiche-ruo-vidiyo dum n'enweghị ịntanetị.
 
 ```bash
 manorem validate examples/gps/ir.json
 manorem compile examples/gps/ir.json --aspect 16:9 -o plan.json
 manorem render plan.json --quality draft -o gps.mp4
-manorem build "How GPS determines your location." --aspect 16:9 -o out/
+manorem vqa plan.json
+manorem build "How GPS determines your location." --aspect 16:9 --vqa -o out/
 ```
 
 `build` na-ede artifact etiti ọ bụla — `brief.json`, `outline.json`, `script.json`,
 `plan/plan_*.json`, `ir.json`, `renderplan.json` — n'akụkụ `gps.mp4` ikpeazụ na
 sidecar `.srt` / `.vtt` ya, ya mere e nwere ike nyochaa ọkwa ọ bụla ma e ji ọdịnaya
 kpọọ ya. `render` na-anabata `--engine stub` maka frame agba siri ike mgbe ị chọrọ
-ịnwale usoro ahụ n'akpọghị Manim.
+ịnwale usoro ahụ n'akpọghị Manim. `vqa` na-atụ plan e chịkọtaralarị maka ntụpọ
+`VQA6xx` n'enweghị ịntanetị, `build --vqa` na-etinyekwa ntụle ahụ n'ime usoro ahụ,
+na-edozi ntụpọ geometry ọ chọtara.
 
 IR mebiri emebi na semantic na-ada n'ụzọ doro anya ma ọ dịghị ihe ọ na-emepụta —
 nchebe nke imewe dum dabere na ya:

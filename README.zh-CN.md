@@ -32,9 +32,10 @@
 
 ## 现状
 
-里程碑 1 已完成：workspace 预留的 8 个包已全部实现，`manorem build` 可以离线地把一个想法
-变成带字幕的视频。已存在的部分是完整的、严格类型化的、有测试覆盖的（927 个测试，
-`mypy --strict` 无告警）；没有任何空壳假装自己比实际更完整。
+里程碑 1 和 2 已完成：workspace 预留的 8 个包已全部实现，`manorem build` 可以离线地把一个想法
+变成带字幕的视频，视觉 QA（`VQA6xx`）现在会对已完成的渲染检查几何缺陷，并把它们送回 IR 修复。
+已存在的部分是完整的、严格类型化的、有测试覆盖的（1,000 个测试，`mypy --strict` 无告警）；没有
+任何空壳假装自己比实际更完整。
 
 | 包 | 状态 | 内容 |
 | --- | --- | --- |
@@ -42,21 +43,23 @@
 | `manorem-ir` | 已实现 | Visual IR：模型、JSON Schema 导出、三层校验、符号化时间求解 |
 | `manorem-skills` | 已实现 | 领域词汇包（额外的对象类型、操作、约束） |
 | `manorem-compiler` | 已实现 | IR → `RenderPlan`：归一化、布局求解、时间、相机、自动修复 |
-| `manorem-renderer` | 已实现 | 沙箱化的 Manim worker（外加一个 stub），逐 scene 产出无声视频 |
+| `manorem-renderer` | 已实现 | 沙箱化的 Manim worker（外加一个 stub），逐 scene 产出无声视频，外加几何视觉 QA |
 | `manorem-compositor` | 已实现 | scene 拼接、转场、音频时间线、SRT/VTT 字幕 |
-| `manorem-ai` | 已实现 | 提供方（Gemini / 录制的 cassette / stub）、规划 agent、有上限的修复 |
-| `manorem-cli` | 已实现 | `manorem` 命令入口：`build`、`validate`、`compile`、`render`、`schema` |
+| `manorem-ai` | 已实现 | 提供方（Gemini / Anthropic / OpenAI / 密钥池故障转移 / 录制的 cassette / stub）、规划 agent、有上限的修复 |
+| `manorem-cli` | 已实现 | `manorem` 命令入口：`build`、`validate`、`compile`、`render`、`vqa`、`schema` |
 
-对边界诚实以告：里程碑 1 的渲染结果**不做视觉质量评估**——`manorem build` 报告的是
-`quality=None`，从不会说“看起来不错”，视觉 QA 阶段（`VQA6xx`）已在设计中但尚未实现。溯源
-校验只能证明被引用的 URL 确实被抓取过，**并不能**证明来源支持某个论断。没有 TTS：旁白时间
-是由每分钟词数模型估算出来的，所以视频是无声但有节奏、并配有同步字幕的。
-`examples/scratch/scene.py` 是一个手写的 Manim 文件，仅作参考，不属于流水线。
+对边界诚实以告：视觉 QA 度量的是**几何**缺陷——文字跑出舞台、对象碰撞、小到读不清的文字、
+与声明背景对比度差——而不是艺术质量；这里刻意没有任何整体的“视觉质量分”，一份干净的报告
+意味着*没有测到缺陷*，而不是*视频好看*。除非明确要求它评估（`manorem build --vqa`），渲染
+仍然报告 `quality=None`，而不是“看起来不错”。溯源校验只能证明被引用的 URL 确实被抓取过，
+**并不能**证明来源支持某个论断。没有 TTS：旁白时间是由每分钟词数模型估算出来的，所以视频是
+无声但有节奏、并配有同步字幕的。`examples/scratch/scene.py` 是一个手写的 Manim 文件，仅作
+参考，不属于流水线。
 
 ## 整体结构
 
 ```
-idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► composite ──► video
+idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► VQA ──► composite ──► video
                                             ▲            │
                                             └── repair ◄─┘   (有上限，由诊断驱动)
 ```
@@ -203,7 +206,8 @@ cue 的参数被限制为扁平的 JSON 标量——这是一条结构性的安�
   超出 scene 的长度。默认是警告，可按策略提升为错误。
 
 三层都从 IR 和求解后的 plan 计算得出，从不看像素。它们确立的是一份 plan *形式正确*，这和
-*好看*是两种不同的断言——观感判断属于 Visual QA 阶段及其 `VQA6xx` 错误码。
+*好看*是两种不同的断言——成品画面到底读不读得清，是渲染之后由 Visual QA 阶段及其 `VQA6xx`
+错误码来度量的。
 
 一条发现会给出错误码、严重级别，以及指向出问题文档的指针。以上面那个 scene 为例，若
 `pulse` cue 的目标被误写成 `"phones"`：
@@ -223,7 +227,7 @@ error: IR201_UNKNOWN_OBJECT_REF [intro] at /timeline/2/targets/0: cue 'pulse' ta
 | `IR3xx` | 节奏与几何 lint |
 | `CMP4xx` | 编译 |
 | `RND5xx` | 渲染 |
-| `VQA6xx` | 视觉质量（保留） |
+| `VQA6xx` | 视觉质量 |
 | `MUX7xx` | 合成拼接 |
 | `RES8xx` | 研究溯源 |
 
@@ -255,21 +259,23 @@ make test
 
 ## 使用命令行
 
-`manorem` 是围绕同一条流水线的五个动词。`validate` 和 `compile` 作用于一个 Visual IR
-项目，`render` 作用于编译好的 `RenderPlan`，`schema` 导出 JSON Schema，而 `build` 会离线
+`manorem` 是围绕同一条流水线的六个动词。`validate` 和 `compile` 作用于一个 Visual IR
+项目，`render` 和 `vqa` 作用于编译好的 `RenderPlan`，`schema` 导出 JSON Schema，而 `build` 会离线
 跑完从想法到视频的整条流水线。
 
 ```bash
 manorem validate examples/gps/ir.json
 manorem compile examples/gps/ir.json --aspect 16:9 -o plan.json
 manorem render plan.json --quality draft -o gps.mp4
-manorem build "How GPS determines your location." --aspect 16:9 -o out/
+manorem vqa plan.json
+manorem build "How GPS determines your location." --aspect 16:9 --vqa -o out/
 ```
 
 `build` 会把每一个中间产物——`brief.json`、`outline.json`、`script.json`、
 `plan/plan_*.json`、`ir.json`、`renderplan.json`——都写在最终的 `gps.mp4` 及其 `.srt` /
 `.vtt` 附属字幕旁边，因此每个阶段都可检视且内容寻址。`render` 接受 `--engine stub`，可在你
-想跑通流水线又不调用 Manim 时，产出纯色帧。
+想跑通流水线又不调用 Manim 时，产出纯色帧。`vqa` 会离线地对已编译的 plan 检查 `VQA6xx`
+缺陷，而 `build --vqa` 把这项评估并入流水线，修复它发现的几何缺陷。
 
 一份语义损坏的 IR 会大声失败、什么也不渲染——这正是整个设计所依赖的护栏：
 
