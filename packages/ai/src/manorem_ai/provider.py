@@ -29,10 +29,14 @@ from manorem_core import ManoremError, canonical_json, sha256_of
 __all__ = [
     "Completion",
     "LLMProvider",
+    "OutputValidationError",
     "Prompt",
     "PromptExample",
     "ProviderError",
+    "RateLimitError",
     "Usage",
+    "prompt_cache_key",
+    "validation_feedback",
 ]
 
 
@@ -44,6 +48,59 @@ class ProviderError(ManoremError):
     failure, not as a diagnostic the repair loop can act on -- there is no IR to
     repair when the model never produced one.
     """
+
+
+class RateLimitError(ProviderError):
+    """The backend refused the call for quota reasons (HTTP 429 / RESOURCE_EXHAUSTED).
+
+    A distinct subclass so a key pool can tell "this key is spent, try the next"
+    apart from "this request is broken". Failing over on a genuine bug would burn
+    every key to hit the same wall; failing over on a rate limit is the whole point.
+    """
+
+
+class OutputValidationError(ProviderError):
+    """The model answered, but its output did not validate against the schema.
+
+    Distinct from a transport failure: the request reached the model and got a
+    reply -- it just broke a schema constraint (an over-long field, a missing key,
+    a bad enum). Structured output is only *syntactically* guaranteed, so this is
+    an expected, recoverable outcome: unlike a rate limit (fail over) or a transport
+    fault (give up), an agent can re-ask with the validator's message as correction.
+    The ``feedback`` is that message, phrased for the model to act on.
+    """
+
+    def __init__(self, message: str, *, feedback: str) -> None:
+        super().__init__(message)
+        self.feedback = feedback
+
+
+def validation_feedback(schema: type[BaseModel], exc: Exception) -> str:
+    """Phrase a validation failure as a correction the model can act on.
+
+    Shared by every live adapter so the retry an agent performs reads the same way
+    whatever backend produced the bad output. Two failure modes are distinguished:
+
+    * **JSON syntax errors** (``Invalid JSON``) -- the model emitted malformed JSON.
+      The feedback points at the exact line/column and asks for a single valid object.
+    * **Schema violations** -- the JSON parsed but broke a constraint. The feedback
+      names the schema and the concrete violations, and insists the fix be surgical:
+      the pipeline still forbids silently reshaping content, so the model must correct
+      only what broke.
+    """
+    msg = str(exc)
+    if "Invalid JSON" in msg or "json_invalid" in msg:
+        return (
+            f"Your previous answer was not valid JSON: {msg}\n"
+            f"Return a single, valid JSON object matching the {schema.__name__} schema "
+            "with no trailing text, no comments, no trailing commas, and every array "
+            "element properly formed. Do not include empty strings or extra braces."
+        )
+    return (
+        f"Your previous answer did not satisfy the {schema.__name__} schema:\n{exc}\n"
+        "Return a corrected JSON object that fixes exactly these problems and changes "
+        "nothing else. Respect every field's length and value limits."
+    )
 
 
 class PromptExample(BaseModel):

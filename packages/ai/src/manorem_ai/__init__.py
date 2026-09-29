@@ -30,20 +30,26 @@ from manorem_ai.agents import (
     render_input,
 )
 from manorem_ai.agents.models import Beat, Script, StoryOutline, VisualPlan
+from manorem_ai.anthropic import AnthropicProvider
 from manorem_ai.arcs import StoryArc, arc_menu, get_arc
 from manorem_ai.cassette import CassetteProvider, StubProvider
 from manorem_ai.gemini import GeminiProvider
+from manorem_ai.keypool import KeyPoolProvider
+from manorem_ai.openai import OpenAIProvider
 from manorem_ai.pacing import PacingReport, pace_script
 from manorem_ai.patch import JsonPatch, PatchError, PatchOp, apply_patch, apply_scene_patch
 from manorem_ai.pipeline import Pipeline, PipelineError, PipelineResult
 from manorem_ai.provider import (
     Completion,
     LLMProvider,
+    OutputValidationError,
     Prompt,
     PromptExample,
     ProviderError,
+    RateLimitError,
     Usage,
     prompt_cache_key,
+    validation_feedback,
 )
 from manorem_ai.quality import NoopVisualQA, VisualQA
 from manorem_ai.research import (
@@ -61,6 +67,7 @@ from manorem_ai.schema_shim import to_gemini_schema
 
 __all__ = [
     "Agent",
+    "AnthropicProvider",
     "Beat",
     "CassetteProvider",
     "Claim",
@@ -71,8 +78,11 @@ __all__ = [
     "GeminiProvider",
     "IRGeneratorAgent",
     "JsonPatch",
+    "KeyPoolProvider",
     "LLMProvider",
     "NoopVisualQA",
+    "OpenAIProvider",
+    "OutputValidationError",
     "PacingReport",
     "PatchError",
     "PatchOp",
@@ -83,6 +93,7 @@ __all__ = [
     "PromptExample",
     "ProvenanceValidator",
     "ProviderError",
+    "RateLimitError",
     "RepairAgent",
     "ResearchAgent",
     "ResearchBrief",
@@ -108,4 +119,5 @@ __all__ = [
     "prompt_cache_key",
     "render_input",
     "to_gemini_schema",
+    "validation_feedback",
 ]

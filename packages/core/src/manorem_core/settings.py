@@ -19,6 +19,9 @@ from manorem_core.errors import ConfigError
 
 class LLMProviderName(StrEnum):
     GEMINI = "gemini"
+    ANTHROPIC = "anthropic"
+    OPENAI = "openai"
+    KEYPOOL = "keypool"
     CASSETTE = "cassette"
     STUB = "stub"
 
@@ -52,6 +55,22 @@ class Settings(BaseSettings):
         default="gemini-3.8-flash",
         description="Used for story and visual planning if a stronger model is desired",
     )
+    anthropic_api_key: SecretStr | None = Field(default=None)
+    anthropic_model: str = Field(default="claude-3-5-sonnet-20241022")
+    anthropic_base_url: str | None = Field(
+        default=None,
+        description="Optional gateway URL (e.g. JustWorker), set MANOREM_ANTHROPIC_BASE_URL",
+    )
+    openai_api_key: SecretStr | None = Field(default=None)
+    openai_model: str = Field(default="gpt-4o")
+    openai_base_url: str | None = Field(
+        default=None,
+        description="Optional gateway URL, set MANOREM_OPENAI_BASE_URL",
+    )
+    keypool_key_pool: list[str] = Field(
+        default_factory=list, description="Ordered api keys for KeyPoolProvider"
+    )
+    keypool_cooldown: int = Field(default=2, ge=0, description="Cooldown attempts after a 429")
     llm_temperature: float = Field(default=0.4, ge=0.0, le=2.0)
     llm_max_tokens: int = Field(default=8192, gt=0)
     ai_record: bool = Field(default=False, description="Refresh cassettes from live calls")

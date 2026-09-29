@@ -12,9 +12,16 @@ import json
 from pathlib import Path
 
 import typer
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, SecretStr, ValidationError
 
-from manorem_ai import CassetteProvider, GeminiProvider, LLMProvider
+from manorem_ai import (
+    AnthropicProvider,
+    CassetteProvider,
+    GeminiProvider,
+    KeyPoolProvider,
+    LLMProvider,
+    OpenAIProvider,
+)
 from manorem_ai.research import Document
 from manorem_core import ConfigError, DiagnosticBag, LLMProviderName, Settings
 from manorem_ir import Aspect
@@ -71,21 +78,52 @@ def resolve_aspect(value: str | None) -> Aspect | None:
         raise typer.Exit(code=2) from None
 
 
-def build_provider(settings: Settings) -> LLMProvider:
-    """Choose the LLM backend named in settings -- Gemini live, or cassette replay.
+def _key_or_raise(key: SecretStr | None, name: str) -> str:
+    if key is None:
+        raise ConfigError(
+            f"MANOREM_{name.upper()}_API_KEY is not set. Set it, or use "
+            "MANOREM_LLM_PROVIDER=cassette to replay recorded responses."
+        )
+    return key.get_secret_value()
 
-    ``cassette`` is the default and needs no key: it replays committed fixtures, so
-    a ``build`` runs offline and deterministically. ``gemini`` requires a key. The
-    ``stub`` provider has no prepared responses outside a test and is refused here.
+
+def build_provider(settings: Settings) -> LLMProvider:
+    """Choose the LLM backend named in settings.
+
+    ``cassette`` is the default and needs no key: it replays committed fixtures, so a
+    ``build`` runs offline and deterministically. ``gemini``, ``anthropic`` and
+    ``openai`` require keys. ``keypool`` wraps a pool of keys for one of the backends
+    with rate-limit failover. The ``stub`` provider has no prepared responses outside a
+    test and is refused here.
     """
-    if settings.llm_provider is LLMProviderName.GEMINI:
+    provider = settings.llm_provider
+    if provider is LLMProviderName.GEMINI:
         return GeminiProvider(api_key=settings.gemini_key_or_raise)
-    if settings.llm_provider is LLMProviderName.CASSETTE:
+    if provider is LLMProviderName.ANTHROPIC:
+        return AnthropicProvider(
+            api_key=_key_or_raise(settings.anthropic_api_key, "anthropic"),
+            base_url=settings.anthropic_base_url,
+        )
+    if provider is LLMProviderName.OPENAI:
+        return OpenAIProvider(
+            api_key=_key_or_raise(settings.openai_api_key, "openai"),
+            base_url=settings.openai_base_url,
+        )
+    if provider is LLMProviderName.KEYPOOL:
+        if not settings.keypool_key_pool:
+            raise ConfigError("MANOREM_KEYPOOL_KEY_POOL is not set for keypool provider")
+        pool = [{"api_key": k} for k in settings.keypool_key_pool]
+        return KeyPoolProvider(
+            provider_factory=GeminiProvider,
+            pool=pool,
+            cooldown_after_rate_limit=settings.keypool_cooldown,
+        )
+    if provider is LLMProviderName.CASSETTE:
         inner = GeminiProvider(api_key=settings.gemini_key_or_raise) if settings.ai_record else None
         return CassetteProvider(settings.ai_cassette_dir, record=settings.ai_record, inner=inner)
     raise ConfigError(
         "the stub provider needs responses prepared in a test; set "
-        "MANOREM_LLM_PROVIDER=cassette or =gemini for the CLI"
+        "MANOREM_LLM_PROVIDER=cassette, =gemini, =anthropic, =openai, or =keypool for the CLI"
     )
 
 
