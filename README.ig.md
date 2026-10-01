@@ -40,12 +40,15 @@ na repository a.
 
 ## Ọnọdụ
 
-Ọ zuola Milestone 1 na 2: ngwugwu asatọ niile nke nhazi workspace na-atụ anya ka
-arụzuru, `manorem build` na-ewere echiche mepụta vidiyo nwere ederede n'enweghị
-ịntanetị, Visual QA (`VQA6xx`) na-enyochakwa ugbu a vidiyo e mechara maka ntụpọ
-geometry ma bughachi ha na nrụzi IR. Ihe dị adị zuru ezu, e depụtara ụdị ya n'ụzọ
-siri ike, e nwekwara nnwale maka ya (nnwale 1,000, `mypy --strict` dị ọcha); ihe
-na-adịghị adị, a naghị eme ka o yie ka ọ dị adị.
+Ọ zuola Milestone 1 ruo 3: ngwugwu asatọ niile nke nhazi workspace na-atụ anya ka
+arụzuru, `manorem build` na-ewere echiche ruo vidiyo nwere ederede n'enweghị
+ịntanetị ma nwee ike mepụta ụda okwu nkọwa site n'ụzọ TTS stub/cassette ya nke
+na-emepụta otu ihe mgbe niile, Visual QA (`VQA6xx`) na-enyocha vidiyo e mechara maka ntụpọ
+geometry ma bughachi ha na nrụzi IR, na okwu e mepụtara site n'igwe — mgbe a
+kwadoro ya — na-aghọ ikike oge nke a na-ahazi vidiyo dum dabere na ya. Ihe dị adị
+zuru ezu, e depụtara ụdị ya n'ụzọ siri ike, e nwekwara nnwale maka ya (nnwale
+1,000+, `mypy --strict` dị ọcha); ihe na-adịghị adị, a naghị eme ka o yie ka ọ dị
+adị.
 
 | Ngwugwu | Ọnọdụ | Ihe dị n'ime |
 | --- | --- | --- |
@@ -53,9 +56,9 @@ na-adịghị adị, a naghị eme ka o yie ka ọ dị adị.
 | `manorem-ir` | arụzuru | Visual IR: models, mbupụ JSON Schema, nnyocha ọkwa atọ, idozi oge site n'akara |
 | `manorem-skills` | arụzuru | ngwugwu okwu maka ngalaba (ụdị object ọzọ, ọrụ, mmachi) |
 | `manorem-compiler` | arụzuru | IR → `RenderPlan`: nhazi, idozi layout, oge, camera, autofix |
-| `manorem-renderer` | arụzuru | onye ọrụ Manim e kpuchiri (na stub) nke na-emepụta vidiyo na-enweghị ụda maka scene ọ bụla, gbakwụnye Visual QA geometry |
-| `manorem-compositor` | arụzuru | ijikọta scene, mgbanwe, timeline ụda, ederede SRT/VTT |
-| `manorem-ai` | arụzuru | ndị na-eweta (Gemini / Anthropic / OpenAI / key-pool failover / cassette e dekọrọ / stub), ndị agent nhazi atụmatụ, nrụzi nwere oke |
+| `manorem-renderer` | arụzuru | onye ọrụ Manim e kpuchiri (na stub) nke na-emepụta vidiyo maka scene ọ bụla, gbakwụnye Visual QA geometry |
+| `manorem-compositor` | arụzuru | ijikọta scene, mgbanwe, timeline ụda, njikọ A/V, ederede SRT/VTT |
+| `manorem-ai` | arụzuru | ndị na-eweta LLM (Gemini / Anthropic / OpenAI / key-pool failover / cassette e dekọrọ / stub) na ndị na-eweta TTS (stub / cassette / okwu dakọtara OpenAI), ndị agent nhazi atụmatụ, nrụzi nwere oke |
 | `manorem-cli` | arụzuru | ọnụ ụzọ `manorem`: `build`, `validate`, `compile`, `render`, `vqa`, `schema` |
 
 Eziokwu banyere akụkụ ọnụ: Visual QA na-atụ **ntụpọ geometry** — ederede pụọ na
@@ -65,18 +68,51 @@ bụla n'ozuzu ya n'ụzọ e ji aka mee, ọ bụ na akụkọ dị ọcha pụ
 tụrụ*, ọ bụghị *ezigbo vidiyo*. Ọ gwụghị ma a rịọ ya ka ọ nyochaa
 (`manorem build --vqa`), vidiyo ka na-akọ `quality=None` kama ị sị "ọ mara mma".
 Nnyocha provenance na-egosi na e nwetara URL e hotara n'ezie, **ọ bụghị** na isi
-mmalite ahụ na-akwado nkwuwa okwu ahụ. Enweghị TTS: a na-eji ụdị okwu-kwa-nkeji tụọ
-oge okwu nkọwa, ya mere vidiyo ahụ na-agbachi nkịtị mana e kenyere ya oge nwere
-ederede a hazikọtara. `examples/scratch/scene.py` bụ faịlụ Manim e ji aka dee, e
-debere ya maka ntụaka, ọ bụghị akụkụ nke usoro a.
+mmalite ahụ na-akwado nkwuwa okwu ahụ. A pụrụ iji igwe mepụta okwu nkọwa ma ọ bụ
+hapụ ya ka ọ gbachie nkịtị: site na `--audio`, onye na-eweta ederede-ruo-okwu
+na-enye akụkụ ọ bụla olu, ogologo oge ya *nke a tụrụ* na-eduzi windo okwu nkọwa,
+ebe a na-anya cue na ederede — ụda bụ ikike oge. Enweghị ụda — nke bụ ndabere,
+`--no-audio`, ma ọ bụ mgbe mmepụta na-adịghị — oge okwu nkọwa na-alaghachi na atụmatụ
+okwu-kwa-nkeji, ya mere vidiyo ahụ na-anọgide na-agbachi nkịtị mana e kenyere ya oge
+nwere ederede a hazikọtara. Ọdịda mmepụta na-alaghachi kwa scene ma bụrụ ihe a na-ahụ
+anya site na diagnostic `AUD9xx`.
+`examples/scratch/scene.py` bụ faịlụ Manim e ji aka dee, e debere ya maka ntụaka, ọ
+bụghị akụkụ nke usoro a.
 
 ## Ọdịdị nke ihe ahụ
 
 ```
-idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► VQA ──► composite ──► video
-                                            ▲            │
-                                            └── repair ◄─┘   (nwere oke, diagnostic na-eduzi ya)
+idea ──► story plan ──► visual plan ──► Visual IR
+                                           │
+                                           ▼
+                                       validate ◄────────┐
+                                           │             │
+                                           ▼             │
+                                 synthesize narration    │
+                                           │             │
+                                           ▼             │
+                                   measured timing       │
+                                           │             │
+                                           ▼             │
+                                       compile ──────────┤  repair
+                                           │             │  (bounded,
+                                           ▼             │   diagnostic-
+                                        render           │   driven)
+                                           │             │
+                                           ▼             │
+                                         VQA ────────────┘
+                                           │
+                                           ▼
+                                 composite A/V + subs
+                                           │
+                                           ▼
+                                         video
 ```
+
+A na-emepụta okwu nkọwa *tupu* e chịkọta ya: ogologo oge kwa akụkụ a tụrụ na-edegharị
+windo okwu nkọwa, ya mere compiler na-aghọ ezigbo oge kama atụmatụ. Mgbe ụda
+gbanyụrụ, a na-amafe nzọụkwụ ahụ, windo ndị ahụ na-anọgidekwa na atụmatụ
+okwu-kwa-nkeji — otu ụzọ ahụ, otu nkewa tupu ya.
 
 Ihe abụọ na-ejide imewe a ọnụ.
 
@@ -261,6 +297,7 @@ Koodu ọ bụla nwere namespace nke ọkwa welitere ya:
 | `VQA6xx` | visual quality |
 | `MUX7xx` | ijikọta |
 | `RES8xx` | provenance nnyocha |
+| `AUD9xx` | ụda okwu nkọwa / oge |
 
 Koodu `IR2xx` ọ bụla dị na `SEMANTIC_ERROR_CODES`, e machibidokwara autofix ka ọ
 ghara imetụ set ahụ aka — ọ na-ebuga ya n'aka onye ọrụ nrụzi nwere oke. Ị "dozie"
@@ -275,6 +312,20 @@ na-atụgharị otu ọnụ ọgụgụ ahụ ka ọ bụrụ frame. Idozi na-ag
 otu ebe kama ịhazi ya n'usoro topological, ya mere timeline mebiri ụfọdụ na-enyekwa
 oge bara uru maka cue ndị zuru ezu — nke ahụ na-eme ka diagnostic pụta ìhè kama ịbụ
 naanị "timeline mebiri".
+
+### Ikike oge ụda
+
+Mgbe a kwadoro ụda, a na-emepụta akụkụ okwu nkọwa ọ bụla n'onwe ya. A na-etinye
+ogologo oge a tụrụ nke clip ọ bụla n'ime field `NarrationSegment.start/end` dị adị
+tupu e chịkọta ya. A na-ahazi akụkụ ndị ahụ otu n'elu ibe ya n'ime scene ha, gụnyere
+`pause_after` nke akụkụ ọ bụla.
+
+Sistemụ oge nke akara dị adị na-edozi `at_narration(...)` megide windo ndị ahụ a
+tụrụ. Ya mere compiler achọghị mgbagha oge nkeiche maka ụda: ezigbo oge okwu nkọwa
+na-agafe otu ụzọ idozi ahụ nke atụmatụ WPM na-eji. Compositor na-emesịa jikọọ akụ ụda
+kwekọrọ na `AudioCue` ndị e chịkọtara ma rụọ njikọ A/V ikpeazụ.
+
+Ọ dịghị timeline ụda nke abụọ, ọ dịghịkwa elekere ederede nke abụọ.
 
 ## Mmalite
 
@@ -298,7 +349,8 @@ chọ API key), ogo nrenda bụ `draft`, ma usoro nrụzi na-agbalị ihe kacha 
 
 `manorem` bụ ngwaa isii n'otu usoro. `validate` na `compile` na-arụ ọrụ na project
 Visual IR, `render` na `vqa` na-arụ na `RenderPlan` e chịkọtara, `schema` na-ebupụ
-JSON Schema, `build` na-agba usoro echiche-ruo-vidiyo dum n'enweghị ịntanetị.
+JSON Schema, `build` na-agba usoro echiche-ruo-vidiyo dum, ebe a na-enweta ọrụ
+n'enweghị ịntanetị dịka ụzọ siri ike nke enweghị netwọk.
 
 ```bash
 manorem validate examples/gps/ir.json
@@ -306,6 +358,8 @@ manorem compile examples/gps/ir.json --aspect 16:9 -o plan.json
 manorem render plan.json --quality draft -o gps.mp4
 manorem vqa plan.json
 manorem build "How GPS determines your location." --aspect 16:9 --vqa -o out/
+manorem build "How GPS determines your location." --audio --tts stub --offline -o out/
+manorem build "How GPS determines your location." --no-audio --offline -o out/
 ```
 
 `build` na-ede artifact etiti ọ bụla — `brief.json`, `outline.json`, `script.json`,
@@ -315,6 +369,15 @@ kpọọ ya. `render` na-anabata `--engine stub` maka frame agba siri ike mgbe �
 ịnwale usoro ahụ n'akpọghị Manim. `vqa` na-atụ plan e chịkọtaralarị maka ntụpọ
 `VQA6xx` n'enweghị ịntanetị, `build --vqa` na-etinyekwa ntụle ahụ n'ime usoro ahụ,
 na-edozi ntụpọ geometry ọ chọtara.
+
+`--audio` na-agbanye okwu nkọwa: backend `--tts` (`stub` ụda n'enweghị ịntanetị nke
+na-emepụta otu ihe mgbe niile, `cassette` nkpọghachi ihe e dekọrọ, ma ọ bụ ezigbo
+onye na-eweta `openai` nke ị họrọ itinye) na-enye akụkụ ọ bụla olu, ogologo oge ndị
+a tụrụ na-aghọkwa ikike oge, ebe e dere WAV kwa akụkụ tinyere `audio/segments.json`
+na `audio/metadata.json` n'akụkụ artifact ndị ọzọ. `--offline` bụ nkwa siri ike nke
+enweghị netwọk — ọ na-ejide cassette LLM na stub TTS ma jụ iwulite ezigbo onye
+na-eweta ọbụlagodi ma environment rịọ ya; ma ọ bụghị otú ahụ, ụda gbanyụrụ site na
+ntọala ma na-alaghachi na oge okwu-kwa-nkeji (`AUD9xx`).
 
 IR mebiri emebi na semantic na-ada n'ụzọ doro anya ma ọ dịghị ihe ọ na-emepụta —
 nchebe nke imewe dum dabere na ya:
@@ -374,3 +437,8 @@ ntụziaka ndị a:
   na-ezo ntụpọ ahụ. `slugify` dị naanị maka aha igwe mepụtara.
 - **Schema ndị a na-echekwa nwere vezọn.** `Project.ir_version` pụtara na a na-amata
   IR ochie e chekwara ma kwaga ya kama ịkọwa ya n'ụzọ na-ezighị ezi.
+- **Ụda bụ ikike oge, ọ bụghị timeline nke abụọ.** Mgbe okwu e mepụtara site n'igwe
+  dị, ogologo oge akụkụ a tụrụ na-ejupụta field oge okwu nkọwa dị adị tupu e chịkọta
+  ya. Ya mere otu onye na-edozi oge nke akara ahụ na-eduzi cue animeshọn, nghọ frame
+  na ederede. A na-ejikọ akụ ụda naanị na plan e chịkọtara, ọ naghị abụkwa akụkụ nke
+  Visual IR.

@@ -37,10 +37,12 @@ repository exists to enforce.
 
 ## Status
 
-Milestones 1 and 2 are complete: all eight packages the workspace anticipates are
-implemented, `manorem build` takes an idea to a captioned video offline, and Visual
-QA (`VQA6xx`) now assesses a finished render for geometric defects and routes them
-back to IR repair. What exists is complete, strictly typed and tested (1,000 tests,
+Milestones 1 through 3 are complete: all eight packages the workspace anticipates are
+implemented, `manorem build` takes an idea to a captioned video offline and can produce
+narrated audio through its deterministic stub/cassette TTS path, Visual QA (`VQA6xx`)
+assesses a finished render for geometric defects and routes them back to IR repair, and
+synthesized speech — when enabled — becomes the timing authority the whole video is cut
+against. What exists is complete, strictly typed and tested (1,000+ tests,
 `mypy --strict` clean); nothing is stubbed out pretending to be more than it is.
 
 | Package | State | Contents |
@@ -49,9 +51,9 @@ back to IR repair. What exists is complete, strictly typed and tested (1,000 tes
 | `manorem-ir` | implemented | the Visual IR: models, JSON Schema export, three-tier validation, symbolic timing resolution |
 | `manorem-skills` | implemented | domain vocabulary packs (extra object kinds, operations, constraints) |
 | `manorem-compiler` | implemented | IR → `RenderPlan`: normalization, layout solving, timing, camera, autofix |
-| `manorem-renderer` | implemented | sandboxed Manim worker (and a stub) producing silent per-scene video, plus geometric Visual QA |
-| `manorem-compositor` | implemented | scene concatenation, transitions, audio timeline, SRT/VTT subtitles |
-| `manorem-ai` | implemented | providers (Gemini / Anthropic / OpenAI / key-pool failover / recorded cassettes / stub), planning agents, bounded repair |
+| `manorem-renderer` | implemented | sandboxed Manim worker (and a stub) producing per-scene video, plus geometric Visual QA |
+| `manorem-compositor` | implemented | scene concatenation, transitions, audio timeline, A/V muxing, SRT/VTT subtitles |
+| `manorem-ai` | implemented | LLM providers (Gemini / Anthropic / OpenAI / key-pool failover / recorded cassettes / stub) and TTS providers (stub / cassette / OpenAI-compatible speech), planning agents, bounded repair |
 | `manorem-cli` | implemented | the `manorem` entry point: `build`, `validate`, `compile`, `render`, `vqa`, `schema` |
 
 Honest about the edges: Visual QA measures **geometric** defects — text off the
@@ -60,18 +62,49 @@ background — not artistic quality; there is deliberately no overall "visual qu
 score", and a clean report means *no measured defect*, not *good video*. Unless it is
 asked to assess (`manorem build --vqa`), a render still reports `quality=None` rather
 than "looks good". Provenance validation proves a cited URL was actually retrieved,
-**not** that the source supports the claim. There is no TTS: narration timings are
-estimated from a words-per-minute model, so the video is silent-but-timed with synced
-subtitles. `examples/scratch/scene.py` is a hand-written Manim file kept for
+**not** that the source supports the claim. Narration can be synthesized or left silent:
+with `--audio` a text-to-speech provider voices each segment and its *measured* duration
+drives the narration windows, cue anchoring and subtitles — audio is the timing authority.
+Without audio — the default, `--no-audio`, or when synthesis is unavailable — narration
+timing falls back to the words-per-minute estimate, so the video stays silent-but-timed
+with synced subtitles. A synthesis failure falls back per scene and is observable through
+`AUD9xx` diagnostics. `examples/scratch/scene.py` is a hand-written Manim file kept for
 reference, not part of the pipeline.
 
 ## The shape of the thing
 
 ```
-idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► VQA ──► composite ──► video
-                                            ▲            │
-                                            └── repair ◄─┘   (bounded, diagnostic-driven)
+idea ──► story plan ──► visual plan ──► Visual IR
+                                           │
+                                           ▼
+                                       validate ◄────────┐
+                                           │             │
+                                           ▼             │
+                                 synthesize narration    │
+                                           │             │
+                                           ▼             │
+                                   measured timing       │
+                                           │             │
+                                           ▼             │
+                                       compile ──────────┤  repair
+                                           │             │  (bounded,
+                                           ▼             │   diagnostic-
+                                        render           │   driven)
+                                           │             │
+                                           ▼             │
+                                         VQA ────────────┘
+                                           │
+                                           ▼
+                                 composite A/V + subs
+                                           │
+                                           ▼
+                                         video
 ```
+
+Narration is synthesized *before* compilation: its measured per-segment durations
+rewrite the narration windows, so the compiler quantizes real timing rather than an
+estimate. When audio is off, that step is skipped and the windows stay on the
+words-per-minute estimate — the same path, one branch earlier.
 
 Two properties hold the design together.
 
@@ -253,6 +286,7 @@ Codes are namespaced by the stage that raises them:
 | `VQA6xx` | visual quality |
 | `MUX7xx` | compositing |
 | `RES8xx` | research provenance |
+| `AUD9xx` | narration audio / timing |
 
 Every `IR2xx` code is in `SEMANTIC_ERROR_CODES`, and deterministic autofix is
 forbidden from touching that set — it escalates to the bounded repair agent
@@ -267,6 +301,21 @@ that quantizes the same numbers to frames. Resolution iterates to a fixpoint rat
 than sorting topologically, so a partially broken timeline still yields useful times
 for the cues that are well-formed — which keeps diagnostics specific instead of
 collapsing into one "the timeline is broken".
+
+### Audio timing authority
+
+When audio is enabled, each narration segment is synthesized independently.
+The measured duration of each clip is injected into the existing
+`NarrationSegment.start/end` fields before compilation. Segments are laid out
+end-to-end within their scene, including each segment's `pause_after`.
+
+The existing symbolic timing system then resolves `at_narration(...)` against
+those measured windows. The compiler therefore needs no audio-specific timing
+logic: real narration timing flows through the same resolution path used by
+WPM estimates. The compositor later attaches the corresponding audio assets
+to compiled `AudioCue`s and performs final A/V assembly.
+
+There is no second audio timeline and no second subtitle clock.
 
 ## Getting started
 
@@ -289,7 +338,8 @@ and the repair loop to at most 2 attempts.
 
 `manorem` is six verbs over one pipeline. `validate` and `compile` operate on a
 Visual IR project, `render` and `vqa` on a compiled `RenderPlan`, `schema` exports
-the JSON Schema, and `build` runs the whole idea-to-video pipeline offline.
+the JSON Schema, and `build` runs the whole idea-to-video pipeline, with offline
+operation available as a hard no-network mode.
 
 ```bash
 manorem validate examples/gps/ir.json
@@ -297,6 +347,8 @@ manorem compile examples/gps/ir.json --aspect 16:9 -o plan.json
 manorem render plan.json --quality draft -o gps.mp4
 manorem vqa plan.json
 manorem build "How GPS determines your location." --aspect 16:9 --vqa -o out/
+manorem build "How GPS determines your location." --audio --tts stub --offline -o out/
+manorem build "How GPS determines your location." --no-audio --offline -o out/
 ```
 
 `build` writes every intermediate artifact — `brief.json`, `outline.json`,
@@ -306,6 +358,14 @@ content-addressed. `render` accepts `--engine stub` for solid-colour frames when
 you want the pipeline exercised without invoking Manim. `vqa` assesses an
 already-compiled plan for `VQA6xx` defects offline, and `build --vqa` folds that
 assessment into the pipeline, repairing the geometric defects it finds.
+
+`--audio` turns on narration: a `--tts` backend (`stub` deterministic offline audio,
+`cassette` recorded replay, or the opt-in real `openai` provider) voices each segment,
+and the measured durations become the timing authority, with per-segment WAVs plus
+`audio/segments.json` and `audio/metadata.json` written beside the other artifacts.
+`--offline` is a hard guarantee of no network — it pins the cassette LLM and the stub
+TTS and refuses to construct a real provider even if the environment asks for one; audio
+is otherwise off by default and falls back to words-per-minute timing (`AUD9xx`).
 
 A semantically broken IR fails loudly and renders nothing — the guardrail the whole
 design turns on:
@@ -364,3 +424,8 @@ positions:
   silently hides that bug. `slugify` exists for machine-generated names only.
 - **Persisted schemas get a version.** `Project.ir_version` means older stored IR is
   recognized and migrated rather than mis-parsed.
+- **Audio is a timing authority, not a second timeline.** When synthesized speech is
+  available, measured segment durations populate the existing narration timing fields
+  before compilation. The same symbolic timing resolver therefore drives animation
+  cues, frame quantization and subtitles. Audio assets are attached only to the
+  compiled plan and never become part of the Visual IR.

@@ -32,10 +32,11 @@
 
 ## 现状
 
-里程碑 1 和 2 已完成：workspace 预留的 8 个包已全部实现，`manorem build` 可以离线地把一个想法
-变成带字幕的视频，视觉 QA（`VQA6xx`）现在会对已完成的渲染检查几何缺陷，并把它们送回 IR 修复。
-已存在的部分是完整的、严格类型化的、有测试覆盖的（1,000 个测试，`mypy --strict` 无告警）；没有
-任何空壳假装自己比实际更完整。
+里程碑 1 到 3 已完成：workspace 预留的 8 个包已全部实现，`manorem build` 可以离线地把一个想法
+变成带字幕的视频，并能通过其确定性的 stub/cassette TTS 路径产出带旁白的音频，视觉 QA（`VQA6xx`）
+会对已完成的渲染评估几何缺陷，并把它们送回 IR 修复，而合成出来的语音——在启用时——会成为整段
+视频据以剪辑的时间权威。已存在的部分是完整的、严格类型化的、有测试覆盖的（1,000+ 个测试，
+`mypy --strict` 无告警）；没有任何空壳假装自己比实际更完整。
 
 | 包 | 状态 | 内容 |
 | --- | --- | --- |
@@ -43,26 +44,54 @@
 | `manorem-ir` | 已实现 | Visual IR：模型、JSON Schema 导出、三层校验、符号化时间求解 |
 | `manorem-skills` | 已实现 | 领域词汇包（额外的对象类型、操作、约束） |
 | `manorem-compiler` | 已实现 | IR → `RenderPlan`：归一化、布局求解、时间、相机、自动修复 |
-| `manorem-renderer` | 已实现 | 沙箱化的 Manim worker（外加一个 stub），逐 scene 产出无声视频，外加几何视觉 QA |
-| `manorem-compositor` | 已实现 | scene 拼接、转场、音频时间线、SRT/VTT 字幕 |
-| `manorem-ai` | 已实现 | 提供方（Gemini / Anthropic / OpenAI / 密钥池故障转移 / 录制的 cassette / stub）、规划 agent、有上限的修复 |
+| `manorem-renderer` | 已实现 | 沙箱化的 Manim worker（外加一个 stub），逐 scene 产出视频，外加几何视觉 QA |
+| `manorem-compositor` | 已实现 | scene 拼接、转场、音频时间线、A/V 混流、SRT/VTT 字幕 |
+| `manorem-ai` | 已实现 | LLM 提供方（Gemini / Anthropic / OpenAI / 密钥池故障转移 / 录制的 cassette / stub）与 TTS 提供方（stub / cassette / 兼容 OpenAI 的语音），规划 agent、有上限的修复 |
 | `manorem-cli` | 已实现 | `manorem` 命令入口：`build`、`validate`、`compile`、`render`、`vqa`、`schema` |
 
 对边界诚实以告：视觉 QA 度量的是**几何**缺陷——文字跑出舞台、对象碰撞、小到读不清的文字、
 与声明背景对比度差——而不是艺术质量；这里刻意没有任何整体的“视觉质量分”，一份干净的报告
 意味着*没有测到缺陷*，而不是*视频好看*。除非明确要求它评估（`manorem build --vqa`），渲染
 仍然报告 `quality=None`，而不是“看起来不错”。溯源校验只能证明被引用的 URL 确实被抓取过，
-**并不能**证明来源支持某个论断。没有 TTS：旁白时间是由每分钟词数模型估算出来的，所以视频是
-无声但有节奏、并配有同步字幕的。`examples/scratch/scene.py` 是一个手写的 Manim 文件，仅作
-参考，不属于流水线。
+**并不能**证明来源支持某个论断。旁白既可以合成，也可以保持无声：加上 `--audio` 后，一个文本转语音提供方会为每个片段配音，
+其*实测*时长驱动旁白窗口、cue 锚定和字幕——音频就是时间权威。没有音频时——默认情况、`--no-audio`，
+或合成不可用时——旁白时间会退回到每分钟词数的估算，于是视频保持无声但有节奏、并配有同步字幕。
+合成失败会逐 scene 退回，并可通过 `AUD9xx` 诊断观测。`examples/scratch/scene.py` 是一个手写的
+Manim 文件，仅作参考，不属于流水线。
 
 ## 整体结构
 
 ```
-idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► VQA ──► composite ──► video
-                                            ▲            │
-                                            └── repair ◄─┘   (有上限，由诊断驱动)
+idea ──► story plan ──► visual plan ──► Visual IR
+                                           │
+                                           ▼
+                                       validate ◄────────┐
+                                           │             │
+                                           ▼             │
+                                 synthesize narration    │
+                                           │             │
+                                           ▼             │
+                                   measured timing       │
+                                           │             │
+                                           ▼             │
+                                       compile ──────────┤  repair
+                                           │             │  (bounded,
+                                           ▼             │   diagnostic-
+                                        render           │   driven)
+                                           │             │
+                                           ▼             │
+                                         VQA ────────────┘
+                                           │
+                                           ▼
+                                 composite A/V + subs
+                                           │
+                                           ▼
+                                         video
 ```
+
+旁白是在编译*之前*合成的：它逐片段的实测时长会改写旁白窗口，于是编译器量化的是真实时间，
+而不是一个估算值。当音频关闭时，这一步会被跳过，窗口仍沿用每分钟词数的估算——同一条路径，
+只是提前一个分支。
 
 有两条性质把整个设计撑在一起。
 
@@ -230,6 +259,7 @@ error: IR201_UNKNOWN_OBJECT_REF [intro] at /timeline/2/targets/0: cue 'pulse' ta
 | `VQA6xx` | 视觉质量 |
 | `MUX7xx` | 合成拼接 |
 | `RES8xx` | 研究溯源 |
+| `AUD9xx` | 旁白音频 / 时间 |
 
 每个 `IR2xx` 错误码都在 `SEMANTIC_ERROR_CODES` 里，确定性自动修复被禁止碰这一集合——遇到
 它就升级给有上限的修复 agent。悄悄“修好”一个悬空引用，等于丢掉作者的意图，还把规划器真正
@@ -240,6 +270,18 @@ error: IR201_UNKNOWN_OBJECT_REF [intro] at /timeline/2/targets/0: cue 'pulse' ta
 各说各话：T2/T3 校验器，以及把同一批数字量化成帧的那个编译器 pass。求解是迭代到不动点，
 而不是拓扑排序，所以一条部分损坏的 timeline 仍然能为形式正确的那些 cue 给出有用的时间
 ——这让诊断保持具体，而不是塌缩成一句“timeline 坏了”。
+
+### 音频时间权威
+
+当音频启用时，每个旁白片段都会被独立合成。每段音频的实测时长会在编译之前注入到已有的
+`NarrationSegment.start/end` 字段中。各片段在其所属 scene 内首尾相接地排布，包括每个片段的
+`pause_after`。
+
+随后，既有的符号化时间系统会针对这些实测窗口求解 `at_narration(...)`。因此编译器不需要任何
+音频专用的时间逻辑：真实的旁白时间走的是与 WPM 估算相同的求解路径。合成器稍后会把对应的音频
+资源附加到已编译的 `AudioCue` 上，并执行最终的 A/V 组装。
+
+不存在第二条音频时间线，也不存在第二套字幕时钟。
 
 ## 快速开始
 
@@ -260,8 +302,8 @@ make test
 ## 使用命令行
 
 `manorem` 是围绕同一条流水线的六个动词。`validate` 和 `compile` 作用于一个 Visual IR
-项目，`render` 和 `vqa` 作用于编译好的 `RenderPlan`，`schema` 导出 JSON Schema，而 `build` 会离线
-跑完从想法到视频的整条流水线。
+项目，`render` 和 `vqa` 作用于编译好的 `RenderPlan`，`schema` 导出 JSON Schema，而 `build` 会
+跑完从想法到视频的整条流水线，并提供离线运行作为一种硬性的无网络模式。
 
 ```bash
 manorem validate examples/gps/ir.json
@@ -269,6 +311,8 @@ manorem compile examples/gps/ir.json --aspect 16:9 -o plan.json
 manorem render plan.json --quality draft -o gps.mp4
 manorem vqa plan.json
 manorem build "How GPS determines your location." --aspect 16:9 --vqa -o out/
+manorem build "How GPS determines your location." --audio --tts stub --offline -o out/
+manorem build "How GPS determines your location." --no-audio --offline -o out/
 ```
 
 `build` 会把每一个中间产物——`brief.json`、`outline.json`、`script.json`、
@@ -276,6 +320,12 @@ manorem build "How GPS determines your location." --aspect 16:9 --vqa -o out/
 `.vtt` 附属字幕旁边，因此每个阶段都可检视且内容寻址。`render` 接受 `--engine stub`，可在你
 想跑通流水线又不调用 Manim 时，产出纯色帧。`vqa` 会离线地对已编译的 plan 检查 `VQA6xx`
 缺陷，而 `build --vqa` 把这项评估并入流水线，修复它发现的几何缺陷。
+
+`--audio` 开启旁白：一个 `--tts` 后端（`stub` 为确定性的离线音频，`cassette` 为录制的回放，
+或是需显式启用的真实 `openai` 提供方）会为每个片段配音，其实测时长成为时间权威，并在其他产物
+旁边写出逐片段的 WAV 文件，外加 `audio/segments.json` 和 `audio/metadata.json`。`--offline` 是对
+“绝不联网”的硬性保证——它固定使用 cassette LLM 和 stub TTS，即便环境要求也拒绝构造真实提供方；
+除此之外音频默认关闭，并退回到每分钟词数的时间估算（`AUD9xx`）。
 
 一份语义损坏的 IR 会大声失败、什么也不渲染——这正是整个设计所依赖的护栏：
 
@@ -325,3 +375,6 @@ manorem validate examples/gps/ir_broken_ref.json   # exits 1 with an IR2xx error
   名字。
 - **持久化的 schema 都带版本号。** 有了 `Project.ir_version`，更早存下来的 IR 会被识别
   并迁移，而不是被解析错。
+- **音频是一种时间权威，而不是第二条时间线。** 当合成语音可用时，实测的片段时长会在编译
+  之前填入已有的旁白时间字段。因此，同一个符号化时间求解器驱动着动画 cue、帧量化和字幕。
+  音频资源只附加到已编译的 plan 上，绝不成为 Visual IR 的一部分。

@@ -37,12 +37,15 @@ de ce dépôt.
 
 ## État
 
-Les Milestones 1 et 2 sont terminés : les huit paquets prévus par la configuration
+Les Milestones 1 à 3 sont terminés : les huit paquets prévus par la configuration
 du workspace sont implémentés, `manorem build` mène d'une idée à une vidéo
-sous-titrée hors ligne, et Visual QA (`VQA6xx`) évalue désormais un rendu terminé à
-la recherche de défauts géométriques et les renvoie vers la réparation de l'IR. Ce
-qui existe est complet, strictement typé et testé (1 000 tests, `mypy --strict` sans
-erreur) ; rien n'est esquissé en faisant croire qu'il est plus abouti qu'il ne l'est.
+sous-titrée hors ligne et peut produire un audio narré via son chemin TTS
+déterministe stub/cassette, Visual QA (`VQA6xx`) évalue un rendu terminé à la
+recherche de défauts géométriques et les renvoie vers la réparation de l'IR, et
+la parole synthétisée — lorsqu'elle est activée — devient l'autorité de timing sur
+laquelle toute la vidéo est montée. Ce qui existe est complet, strictement typé et
+testé (plus de 1 000 tests, `mypy --strict` sans erreur) ; rien n'est esquissé en
+faisant croire qu'il est plus abouti qu'il ne l'est.
 
 | Paquet | État | Contenu |
 | --- | --- | --- |
@@ -50,9 +53,9 @@ erreur) ; rien n'est esquissé en faisant croire qu'il est plus abouti qu'il ne 
 | `manorem-ir` | implémenté | le Visual IR : modèles, export JSON Schema, validation à trois niveaux, résolution symbolique du temps |
 | `manorem-skills` | implémenté | paquets de vocabulaire métier (types d'objets, opérations, contraintes supplémentaires) |
 | `manorem-compiler` | implémenté | IR → `RenderPlan` : normalisation, résolution de layout, timing, caméra, autofix |
-| `manorem-renderer` | implémenté | worker Manim isolé (et un stub) produisant une vidéo muette par scène, plus le Visual QA géométrique |
-| `manorem-compositor` | implémenté | concaténation des scènes, transitions, timeline audio, sous-titres SRT/VTT |
-| `manorem-ai` | implémenté | fournisseurs (Gemini / Anthropic / OpenAI / bascule de pool de clés / cassettes enregistrées / stub), agents de planification, réparation bornée |
+| `manorem-renderer` | implémenté | worker Manim isolé (et un stub) produisant une vidéo par scène, plus le Visual QA géométrique |
+| `manorem-compositor` | implémenté | concaténation des scènes, transitions, timeline audio, multiplexage A/V, sous-titres SRT/VTT |
+| `manorem-ai` | implémenté | fournisseurs LLM (Gemini / Anthropic / OpenAI / bascule de pool de clés / cassettes enregistrées / stub) et fournisseurs TTS (stub / cassette / parole compatible OpenAI), agents de planification, réparation bornée |
 | `manorem-cli` | implémenté | le point d'entrée `manorem` : `build`, `validate`, `compile`, `render`, `vqa`, `schema` |
 
 Honnête sur les limites : Visual QA mesure des défauts **géométriques** — texte hors
@@ -62,18 +65,52 @@ aucun « score de qualité visuelle » global, et un rapport propre signifie *au
 défaut mesuré*, pas *bonne vidéo*. Sauf si on lui demande d'évaluer
 (`manorem build --vqa`), un rendu rapporte encore `quality=None` plutôt que « c'est
 réussi ». La validation de provenance prouve qu'une URL citée a réellement été
-récupérée, **non** que la source étaie l'affirmation. Il n'y a pas de TTS : les temps
-de narration sont estimés à partir d'un modèle de mots par minute, la vidéo est donc
-muette mais rythmée, avec des sous-titres synchronisés. `examples/scratch/scene.py`
-est un fichier Manim écrit à la main, conservé pour référence et hors pipeline.
+récupérée, **non** que la source étaie l'affirmation. La narration peut être
+synthétisée ou laissée muette : avec `--audio`, un fournisseur de synthèse vocale
+donne voix à chaque segment et sa durée *mesurée* pilote les fenêtres de narration,
+l'ancrage des cues et les sous-titres — l'audio fait autorité sur le timing. Sans
+audio — le comportement par défaut, `--no-audio`, ou lorsque la synthèse est
+indisponible —, le timing de la narration retombe sur l'estimation en mots par
+minute, si bien que la vidéo reste muette mais rythmée, avec des sous-titres
+synchronisés. Un échec de synthèse retombe scène par scène et est observable via les
+diagnostics `AUD9xx`. `examples/scratch/scene.py` est un fichier Manim écrit à la
+main, conservé pour référence et hors pipeline.
 
 ## La forme de l'ensemble
 
 ```
-idea ──► story plan ──► visual plan ──► Visual IR ──► validate ──► compile ──► render ──► VQA ──► composite ──► video
-                                            ▲            │
-                                            └── repair ◄─┘   (borné, piloté par les diagnostics)
+idea ──► story plan ──► visual plan ──► Visual IR
+                                           │
+                                           ▼
+                                       validate ◄────────┐
+                                           │             │
+                                           ▼             │
+                                 synthesize narration    │
+                                           │             │
+                                           ▼             │
+                                   measured timing       │
+                                           │             │
+                                           ▼             │
+                                       compile ──────────┤  repair
+                                           │             │  (bounded,
+                                           ▼             │   diagnostic-
+                                        render           │   driven)
+                                           │             │
+                                           ▼             │
+                                         VQA ────────────┘
+                                           │
+                                           ▼
+                                 composite A/V + subs
+                                           │
+                                           ▼
+                                         video
 ```
+
+La narration est synthétisée *avant* la compilation : ses durées par segment
+mesurées réécrivent les fenêtres de narration, de sorte que le compilateur quantifie
+un timing réel plutôt qu'une estimation. Quand l'audio est désactivé, cette étape est
+sautée et les fenêtres restent sur l'estimation en mots par minute — le même chemin,
+une bifurcation plus tôt.
 
 Deux propriétés tiennent la conception.
 
@@ -260,6 +297,7 @@ Les codes sont namespacés par l'étape qui les lève :
 | `VQA6xx` | qualité visuelle |
 | `MUX7xx` | composition |
 | `RES8xx` | provenance de recherche |
+| `AUD9xx` | audio de narration / timing |
 
 Tout code `IR2xx` figure dans `SEMANTIC_ERROR_CODES`, et l'autofix déterministe n'a
 pas le droit d'y toucher — il escalade vers l'agent de réparation borné. « Corriger »
@@ -275,6 +313,22 @@ images. La résolution itère jusqu'à un point fixe au lieu de trier topologiqu
 une timeline partiellement cassée fournit encore des temps utiles pour les cues bien
 formés — ce qui garde des diagnostics précis au lieu de tout réduire à un seul
 « la timeline est cassée ».
+
+### Autorité de timing de l'audio
+
+Quand l'audio est activé, chaque segment de narration est synthétisé indépendamment.
+La durée mesurée de chaque clip est injectée dans les champs existants
+`NarrationSegment.start/end` avant la compilation. Les segments sont disposés bout à
+bout au sein de leur scène, y compris le `pause_after` de chaque segment.
+
+Le système de timing symbolique existant résout alors `at_narration(...)` par rapport
+à ces fenêtres mesurées. Le compilateur n'a donc besoin d'aucune logique de timing
+spécifique à l'audio : le timing réel de la narration emprunte le même chemin de
+résolution que celui utilisé par les estimations en mots par minute. Le compositor
+rattache ensuite les assets audio correspondants aux `AudioCue`s compilés et effectue
+l'assemblage A/V final.
+
+Il n'existe aucune seconde timeline audio ni aucune seconde horloge de sous-titres.
 
 ## Démarrage
 
@@ -298,8 +352,8 @@ au plus 2 tentatives.
 
 `manorem`, ce sont six verbes sur un même pipeline. `validate` et `compile` opèrent
 sur un projet Visual IR, `render` et `vqa` sur un `RenderPlan` compilé, `schema`
-exporte le JSON Schema, et `build` exécute tout le pipeline de l'idée à la vidéo hors
-ligne.
+exporte le JSON Schema, et `build` exécute tout le pipeline de l'idée à la vidéo, le
+fonctionnement hors ligne étant disponible comme un mode strict sans réseau.
 
 ```bash
 manorem validate examples/gps/ir.json
@@ -307,6 +361,8 @@ manorem compile examples/gps/ir.json --aspect 16:9 -o plan.json
 manorem render plan.json --quality draft -o gps.mp4
 manorem vqa plan.json
 manorem build "How GPS determines your location." --aspect 16:9 --vqa -o out/
+manorem build "How GPS determines your location." --audio --tts stub --offline -o out/
+manorem build "How GPS determines your location." --no-audio --offline -o out/
 ```
 
 `build` écrit chaque artefact intermédiaire — `brief.json`, `outline.json`,
@@ -316,6 +372,15 @@ adressée par contenu. `render` accepte `--engine stub` pour des images en coule
 quand on veut exercer le pipeline sans invoquer Manim. `vqa` évalue un plan déjà
 compilé à la recherche de défauts `VQA6xx` hors ligne, et `build --vqa` intègre cette
 évaluation dans le pipeline, réparant les défauts géométriques qu'il trouve.
+
+`--audio` active la narration : un backend `--tts` (`stub` pour un audio déterministe
+hors ligne, `cassette` pour une relecture enregistrée, ou le fournisseur réel `openai`
+en option) donne voix à chaque segment, et les durées mesurées deviennent l'autorité
+de timing, avec des WAV par segment plus `audio/segments.json` et `audio/metadata.json`
+écrits à côté des autres artefacts. `--offline` est une garantie absolue d'absence de
+réseau — il épingle le LLM cassette et le TTS stub et refuse de construire un vrai
+fournisseur même si l'environnement en réclame un ; l'audio est sinon désactivé par
+défaut et retombe sur un timing en mots par minute (`AUD9xx`).
 
 Un IR sémantiquement cassé échoue bruyamment et ne rend rien — le garde-fou sur lequel
 repose toute la conception :
@@ -378,3 +443,9 @@ L'essentiel des choix non évidents de ce dépôt découle d'une poignée de pos
   noms générés par machine.
 - **Les schémas persistés ont une version.** `Project.ir_version` fait qu'un IR stocké
   plus ancien est reconnu et migré plutôt que mal interprété.
+- **L'audio fait autorité sur le timing, et n'est pas une seconde timeline.** Lorsque
+  la parole synthétisée est disponible, les durées de segment mesurées renseignent les
+  champs de timing de narration existants avant la compilation. Le même résolveur de
+  timing symbolique pilote donc les cues d'animation, la quantification en images et
+  les sous-titres. Les assets audio ne sont rattachés qu'au plan compilé et ne font
+  jamais partie du Visual IR.
