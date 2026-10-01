@@ -17,13 +17,17 @@ from pydantic import BaseModel, SecretStr, ValidationError
 from manorem_ai import (
     AnthropicProvider,
     CassetteProvider,
+    CassetteTTSProvider,
     GeminiProvider,
     KeyPoolProvider,
     LLMProvider,
     OpenAIProvider,
+    OpenAISpeechProvider,
+    StubTTSProvider,
+    TTSProvider,
 )
 from manorem_ai.research import Document
-from manorem_core import ConfigError, DiagnosticBag, LLMProviderName, Settings
+from manorem_core import ConfigError, DiagnosticBag, LLMProviderName, Settings, TTSProviderName
 from manorem_ir import Aspect
 
 
@@ -124,6 +128,44 @@ def build_provider(settings: Settings) -> LLMProvider:
     raise ConfigError(
         "the stub provider needs responses prepared in a test; set "
         "MANOREM_LLM_PROVIDER=cassette, =gemini, =anthropic, =openai, or =keypool for the CLI"
+    )
+
+
+def build_tts_provider(settings: Settings) -> TTSProvider:
+    """Choose the speech backend named in settings, mirroring :func:`build_provider`.
+
+    ``stub`` is the deterministic default: it emits silent, content-addressed WAVs
+    whose durations are a documented function of the text, so an offline ``build``
+    gets *real measured* timing without a network. ``cassette`` replays committed
+    clips (and, with ``MANOREM_TTS_RECORD=1``, records them from the real provider).
+    ``openai`` is the one real provider and the only one that needs a key -- it is
+    opt-in and, by invariant, never selected under ``--offline`` (the build command
+    pins ``stub`` first and refuses to construct it).
+    """
+    provider = settings.tts_provider
+    if provider is TTSProviderName.STUB:
+        return StubTTSProvider()
+    if provider is TTSProviderName.CASSETTE:
+        inner = (
+            OpenAISpeechProvider(
+                api_key=_key_or_raise(settings.tts_api_key, "tts"),
+                base_url=settings.tts_base_url,
+                model=settings.tts_model,
+            )
+            if settings.tts_record
+            else None
+        )
+        return CassetteTTSProvider(
+            settings.tts_cassette_dir, record=settings.tts_record, inner=inner
+        )
+    if provider is TTSProviderName.OPENAI:
+        return OpenAISpeechProvider(
+            api_key=_key_or_raise(settings.tts_api_key, "tts"),
+            base_url=settings.tts_base_url,
+            model=settings.tts_model,
+        )
+    raise ConfigError(
+        f"unknown tts provider {provider!r}; set MANOREM_TTS_PROVIDER=stub, =cassette, or =openai"
     )
 
 

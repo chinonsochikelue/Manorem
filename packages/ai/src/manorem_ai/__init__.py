@@ -64,12 +64,24 @@ from manorem_ai.research import (
     VisualCandidate,
 )
 from manorem_ai.schema_shim import to_gemini_schema
+from manorem_ai.tts import (
+    CassetteTTSProvider,
+    OpenAISpeechProvider,
+    StubTTSProvider,
+    SynthesizedAudio,
+    TTSError,
+    TTSProvider,
+    TTSRequest,
+    tts_cache_key,
+    wav_duration_seconds,
+)
 
 __all__ = [
     "Agent",
     "AnthropicProvider",
     "Beat",
     "CassetteProvider",
+    "CassetteTTSProvider",
     "Claim",
     "Completion",
     "Document",
@@ -82,6 +94,7 @@ __all__ = [
     "LLMProvider",
     "NoopVisualQA",
     "OpenAIProvider",
+    "OpenAISpeechProvider",
     "OutputValidationError",
     "PacingReport",
     "PatchError",
@@ -105,6 +118,11 @@ __all__ = [
     "StoryArc",
     "StoryOutline",
     "StubProvider",
+    "StubTTSProvider",
+    "SynthesizedAudio",
+    "TTSError",
+    "TTSProvider",
+    "TTSRequest",
     "Usage",
     "VisualCandidate",
     "VisualPlan",
@@ -119,5 +137,7 @@ __all__ = [
     "prompt_cache_key",
     "render_input",
     "to_gemini_schema",
+    "tts_cache_key",
     "validation_feedback",
+    "wav_duration_seconds",
 ]

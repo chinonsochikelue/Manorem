@@ -11,9 +11,10 @@ clamp anything. Those are the compiler's business.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 
-from manorem_ir.narration import DEFAULT_WPM
+from manorem_ir.narration import DEFAULT_WPM, NarrationSegment
 from manorem_ir.operations import DEFAULT_REGISTRY, OperationRegistry
 from manorem_ir.scene import Scene
 from manorem_ir.timeline import Cue
@@ -94,6 +95,42 @@ def narration_windows(scene: Scene, wpm: float = DEFAULT_WPM) -> dict[str, Windo
         windows[segment.id] = window
         cursor = window.end
     return windows
+
+
+def retime_narration(scene: Scene, durations: Mapping[str, float]) -> Scene:
+    """Return a copy of ``scene`` whose segments carry measured ``start``/``end``.
+
+    Each segment present in ``durations`` is laid end-to-end on the scene-local
+    clock from its *measured* speaking time plus the authored ``pause_after``::
+
+        window = [cursor, cursor + durations[seg.id] + seg.pause_after]
+
+    which is exactly the shape :func:`narration_windows` later reproduces from the
+    stored ``start``/``end`` -- so once a scene is retimed, every downstream
+    consumer (cue anchoring, frame quantization, subtitles) reads the same clock
+    with no second timing system.
+
+    This is a pure primitive. ``durations`` *may* be partial: a segment absent
+    from the map keeps its current state (``start``/``end`` untouched, so it falls
+    back to the WPM estimate), and the cursor advances by that segment's own
+    estimate so any remaining measured segments stay laid end to end. The pipeline
+    never passes a partial scene -- a failed scene is retimed with an empty map
+    (all WPM) and a succeeded scene with a complete one -- but the partiality keeps
+    the primitive total and testable.
+    """
+    cursor = 0.0
+    retimed: list[NarrationSegment] = []
+    for segment in scene.narration:
+        measured = durations.get(segment.id)
+        if measured is None:
+            retimed.append(segment)
+            cursor += segment.estimated_duration()
+            continue
+        start = cursor
+        end = cursor + measured + segment.pause_after
+        retimed.append(segment.with_timing(start, end))
+        cursor = end
+    return scene.model_copy(update={"narration": retimed})
 
 
 def _find_cycles(edges: dict[str, str]) -> tuple[tuple[str, ...], ...]:

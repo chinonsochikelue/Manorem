@@ -27,7 +27,7 @@ class Code(StrEnum):
     ``IR1xx`` structural, ``IR2xx`` referential/semantic, ``IR3xx`` pacing and
     geometry, ``CMP4xx`` compile, ``RND5xx`` render, ``VQA6xx`` visual quality,
     ``MUX7xx`` compositing (concat, audio mux, subtitles), ``RES8xx`` research
-    provenance.
+    provenance, ``AUD9xx`` speech synthesis and audio timing.
     """
 
     # --- IR1xx: structural (shape of the document) ---------------------------
@@ -100,6 +100,17 @@ class Code(StrEnum):
     # --- MUX7xx: compositing (concat, audio mux, subtitles) -----------------
     MUX701_COMPOSITE_FAILED = "MUX701_COMPOSITE_FAILED"
     MUX702_MISSING_INPUT = "MUX702_MISSING_INPUT"
+    MUX703_AUDIO_MUX_FAILED = "MUX703_AUDIO_MUX_FAILED"
+
+    # --- AUD9xx: speech synthesis / audio timing ----------------------------
+    # Emitted by the TTS seam when synthesizing narration. None of these are
+    # semantic: a synthesis failure triggers a *fallback* to WPM estimation, never
+    # LLM IR repair, so they stay out of SEMANTIC_ERROR_CODES and remain autofixable
+    # (i.e. non-blocking). The audio path is additive -- a clean build with audio
+    # disabled emits none of them.
+    AUD901_TTS_PROVIDER_FAILED = "AUD901_TTS_PROVIDER_FAILED"
+    AUD902_AUDIO_DURATION_INVALID = "AUD902_AUDIO_DURATION_INVALID"
+    AUD903_WPM_FALLBACK = "AUD903_WPM_FALLBACK"
 
     # --- RES8xx: research provenance ----------------------------------------
     # Provenance only: RES801 proves a cited URL was NOT retrieved. It says

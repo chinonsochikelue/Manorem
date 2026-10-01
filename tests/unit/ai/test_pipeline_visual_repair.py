@@ -119,7 +119,7 @@ def test_visual_repair_clears_after_one_patch(tmp_path: Path) -> None:
     pipe = _pipeline(provider, tmp_path, vqa)
 
     repaired, _plan, _render, report, _comp, attempts = pipe._render_qa_repair(
-        project, plan, CompileOptions(), tmp_path / "work"
+        project, plan, CompileOptions(), tmp_path / "work", {}
     )
 
     assert attempts == 1
@@ -137,7 +137,7 @@ def test_visual_repair_respects_the_attempt_cap(tmp_path: Path) -> None:
     pipe = _pipeline(provider, tmp_path, vqa)
 
     _project, _plan, _render, report, _comp, attempts = pipe._render_qa_repair(
-        project, plan, CompileOptions(), tmp_path / "work"
+        project, plan, CompileOptions(), tmp_path / "work", {}
     )
 
     assert attempts == pipe._settings.max_repair_attempts == 2
@@ -152,7 +152,7 @@ def test_visual_repair_stops_when_a_patch_is_rejected(tmp_path: Path) -> None:
     pipe = _pipeline(provider, tmp_path, vqa)
 
     result_project, _plan, _render, report, _comp, attempts = pipe._render_qa_repair(
-        project, plan, CompileOptions(), tmp_path / "work"
+        project, plan, CompileOptions(), tmp_path / "work", {}
     )
 
     assert attempts == 1  # one attempt was made, then the loop gave up

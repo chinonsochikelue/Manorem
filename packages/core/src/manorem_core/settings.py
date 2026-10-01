@@ -34,6 +34,15 @@ class RenderQuality(StrEnum):
     FINAL = "final"  # 1920x1080 @ 60fps
 
 
+class TTSProviderName(StrEnum):
+    """Speech synthesis backends. ``stub`` and ``cassette`` are offline; ``openai``
+    is the one real, opt-in provider and is unreachable under ``--offline``."""
+
+    STUB = "stub"
+    CASSETTE = "cassette"
+    OPENAI = "openai"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="MANOREM_",
@@ -95,8 +104,30 @@ class Settings(BaseSettings):
 
     # --- narration ----------------------------------------------------------
     narration_wpm: float = Field(
-        default=150.0, gt=0.0, description="Placeholder pacing model until TTS lands"
+        default=150.0, gt=0.0, description="Fallback pacing model when no audio is synthesized"
     )
+
+    # --- audio / TTS --------------------------------------------------------
+    #: Off by default so ``build`` stays a silent-but-timed promise unless a command
+    #: explicitly asks for speech (``build --audio``). When on, synthesized clip
+    #: durations become the narration timing authority; WPM is the fallback whenever
+    #: a scene's audio is unavailable.
+    audio_enabled: bool = Field(default=False, description="Synthesize narration audio")
+    tts_provider: TTSProviderName = Field(default=TTSProviderName.STUB)
+    tts_voice: str = Field(default="narrator", description="Provider-neutral voice label")
+    tts_language: str = Field(
+        default="en", description="BCP-47-ish language tag passed to the provider"
+    )
+    tts_speed: float = Field(default=1.0, gt=0.0, le=4.0, description="Speaking-rate multiplier")
+    tts_sample_rate: int = Field(default=24000, gt=0, description="Target PCM sample rate (Hz)")
+    tts_cassette_dir: Path = Field(default=Path("tests/fixtures/tts_cassettes"))
+    tts_record: bool = Field(default=False, description="Refresh TTS cassettes from live calls")
+    tts_api_key: SecretStr | None = Field(default=None)
+    tts_base_url: str | None = Field(
+        default=None,
+        description="Optional OpenAI-compatible gateway URL, set MANOREM_TTS_BASE_URL",
+    )
+    tts_model: str = Field(default="tts-1", description="Model id for the real speech provider")
 
     @property
     def gemini_key_or_raise(self) -> str:

@@ -30,6 +30,7 @@ from manorem_core.settings import (
     LLMProviderName,
     RenderQuality,
     Settings,
+    TTSProviderName,
     get_settings,
 )
 from manorem_core.storage import LocalFSStore, ObjectStore, validate_key
@@ -52,6 +53,7 @@ __all__ = [
     "Settings",
     "Severity",
     "Slug",
+    "TTSProviderName",
     "UnsafePathError",
     "bind_context",
     "canonical_bytes",

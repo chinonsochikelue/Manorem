@@ -40,9 +40,10 @@ _NAMESPACE_BLOCKS: dict[str, frozenset[str]] = {
     "VQA": frozenset({"6"}),
     "MUX": frozenset({"7"}),
     "RES": frozenset({"8"}),
+    "AUD": frozenset({"9"}),
 }
 
-_CODE_SHAPE = re.compile(r"^(IR|CMP|RND|VQA|MUX|RES)(\d)\d\d_[A-Z][A-Z0-9_]*$")
+_CODE_SHAPE = re.compile(r"^(IR|CMP|RND|VQA|MUX|RES|AUD)(\d)\d\d_[A-Z][A-Z0-9_]*$")
 
 #: Codes this directory is responsible for. The later namespaces belong to
 #: packages that do not exist yet; ``test_every_namespace_is_accounted_for``

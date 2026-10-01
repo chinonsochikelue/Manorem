@@ -91,7 +91,13 @@ from manorem_ir.props import (
     TimelineEntry,
     TimelineProps,
 )
-from manorem_ir.resolve import ResolvedTiming, Window, narration_windows, resolve_timing
+from manorem_ir.resolve import (
+    ResolvedTiming,
+    Window,
+    narration_windows,
+    resolve_timing,
+    retime_narration,
+)
 from manorem_ir.scene import CUT, Scene, Transition
 from manorem_ir.schema import (
     SCHEMA_MODELS,
@@ -242,6 +248,7 @@ __all__ = [
     "referenced_cue",
     "referenced_segment",
     "resolve_timing",
+    "retime_narration",
     "scene_duration",
     "schema_digest",
     "schema_for",

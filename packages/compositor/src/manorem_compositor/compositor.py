@@ -12,11 +12,14 @@ silent video for the whole plan, so the common case is a one-element
 ``videos``. The concat demuxer handles one input as happily as many, so the same
 code path scales to per-scene rendering later without a rewrite.
 
-**Subtitles are always written; audio never is (yet).** The SRT and WebVTT
+**Subtitles are always written; audio when there is any.** The SRT and WebVTT
 sidecars are produced from the plan's narration on every call, success or
-failure, because they are the only channel M1's silent render has to the viewer.
-Audio mixing is a defined seam (:mod:`.audio`) that stays dormant while every
-narration segment's ``asset`` is ``None``.
+failure, because they are a channel to the viewer that survives a mux failure.
+Audio mixing (:mod:`.audio`) stays dormant while every narration segment's
+``asset`` is ``None`` -- the silent plan keeps M1's exact ``-c copy`` argv -- and
+switches on the moment the pipeline attaches synthesized clips: each voiced
+segment becomes an ``adelay``-ed input mixed into one track and muxed over the
+copied video, with any audio-stage failure reported as ``MUX703``.
 """
 
 from __future__ import annotations
@@ -28,6 +31,7 @@ from enum import StrEnum
 from pathlib import Path
 
 from manorem_compiler import RenderPlan
+from manorem_compositor.audio import AudioTimeline, build_audio_timeline
 from manorem_compositor.ffmpeg import FFmpegCommand, FFmpegInput, workspace_relative
 from manorem_compositor.subtitles import build_subtitle_track, to_srt, to_vtt
 from manorem_core import Code, Diagnostic, Severity
@@ -104,8 +108,12 @@ class Compositor:
         if missing is not None:
             return self._failed(missing, srt_path, vtt_path, start)
 
-        command = self._build_command(videos, workspace, srt_path, options)
-        diagnostic = self._run(command, workspace, options)
+        timeline = build_audio_timeline(plan)
+        command = self._build_command(plan, videos, workspace, srt_path, options)
+        fail_code = (
+            Code.MUX701_COMPOSITE_FAILED if timeline.is_silent else Code.MUX703_AUDIO_MUX_FAILED
+        )
+        diagnostic = self._run(command, workspace, options, fail_code)
         if diagnostic is not None:
             return self._failed(diagnostic, srt_path, vtt_path, start)
 
@@ -146,15 +154,39 @@ class Compositor:
 
     def _build_command(
         self,
+        plan: RenderPlan,
         videos: tuple[Path, ...],
         workspace: Path,
         srt_path: Path,
         options: CompositionOptions,
     ) -> FFmpegCommand:
+        """Build the mux command, adding an audio filtergraph when the plan is voiced.
+
+        Input 0 is always the concat demuxer (video). A silent plan keeps M1's exact
+        argv -- ``-c copy`` (or the burn-in video filter) and no audio -- so its
+        golden is regression-safe. When :func:`build_audio_timeline` reports voiced
+        segments, each becomes an ``adelay``-ed ``-i`` input, they are ``amix``-ed
+        into one track, and the output maps the copied video alongside the mixed
+        audio (``-c:a aac``).
+        """
         concat_list = workspace / "concat.txt"
         lines = [f"file '{workspace_relative(workspace, v)}'" for v in videos]
         concat_list.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        concat_input = FFmpegInput(path=concat_list, options=("-f", "concat", "-safe", "0"))
 
+        timeline = build_audio_timeline(plan)
+        if timeline.is_silent:
+            return self._build_silent_command(concat_input, workspace, srt_path, options)
+        return self._build_audio_command(timeline, concat_input, workspace, srt_path, options)
+
+    def _build_silent_command(
+        self,
+        concat_input: FFmpegInput,
+        workspace: Path,
+        srt_path: Path,
+        options: CompositionOptions,
+    ) -> FFmpegCommand:
+        """M1's exact path: stream-copy the concat, or burn captions into the pixels."""
         if options.burn_in_subtitles:
             subtitle_name = workspace_relative(workspace, srt_path)
             output_options: tuple[str, ...] = (
@@ -171,15 +203,80 @@ class Compositor:
         return FFmpegCommand(
             workspace=workspace,
             output=workspace / "final.mp4",
-            inputs=(FFmpegInput(path=concat_list, options=("-f", "concat", "-safe", "0")),),
+            inputs=(concat_input,),
             output_options=output_options,
             executable=options.executable,
         )
 
+    def _build_audio_command(
+        self,
+        timeline: AudioTimeline,
+        concat_input: FFmpegInput,
+        workspace: Path,
+        srt_path: Path,
+        options: CompositionOptions,
+    ) -> FFmpegCommand:
+        """Mux the voiced segments over the copied video on one global clock.
+
+        Each voiced :class:`~manorem_compositor.audio.TimedNarration` is delayed to
+        its global ``start_frame`` with ``adelay`` (one value per channel) and the
+        delayed streams are summed by ``amix`` with ``normalize=0`` so a segment's
+        loudness does not sag as the count grows. The video is stream-copied (or
+        subtitle-burned, when asked) and mapped beside the mixed ``[aout]``; the
+        delays come straight from the frame grid, so audio lands exactly where the
+        subtitles say it does.
+        """
+        voiced = [seg for seg in timeline.segments if seg.asset is not None]
+        inputs = [concat_input]
+        filters: list[str] = []
+
+        if options.burn_in_subtitles:
+            subtitle_name = workspace_relative(workspace, srt_path)
+            filters.append(f"[0:v]subtitles={subtitle_name}[v]")
+            video_map = "[v]"
+            video_options: tuple[str, ...] = ("-pix_fmt", "yuv420p")
+        else:
+            video_map = "0:v"
+            video_options = ("-c:v", "copy")
+
+        for index, seg in enumerate(voiced):
+            assert seg.asset is not None  # filtered above
+            inputs.append(FFmpegInput(path=workspace / seg.asset))
+            delay_ms = round(seg.start_frame * 1000 / timeline.fps)
+            filters.append(f"[{index + 1}:a]adelay={delay_ms}|{delay_ms}[a{index}]")
+        mixed = "".join(f"[a{index}]" for index in range(len(voiced)))
+        filters.append(f"{mixed}amix=inputs={len(voiced)}:normalize=0[aout]")
+
+        return FFmpegCommand(
+            workspace=workspace,
+            output=workspace / "final.mp4",
+            inputs=tuple(inputs),
+            filter_complex=";".join(filters),
+            output_options=(
+                "-map",
+                video_map,
+                "-map",
+                "[aout]",
+                *video_options,
+                "-c:a",
+                "aac",
+            ),
+            executable=options.executable,
+        )
+
     def _run(
-        self, command: FFmpegCommand, workspace: Path, options: CompositionOptions
+        self,
+        command: FFmpegCommand,
+        workspace: Path,
+        options: CompositionOptions,
+        fail_code: Code = Code.MUX701_COMPOSITE_FAILED,
     ) -> Diagnostic | None:
-        """Run the mux; return a ``MUX701`` on any failure, or ``None`` on success."""
+        """Run the mux; return ``fail_code`` on any failure, or ``None`` on success.
+
+        ``fail_code`` is ``MUX701`` for a plain concat and ``MUX703`` once an audio
+        filtergraph is in play, so a mix/mux failure is distinguishable from a
+        video-only concat failure without inspecting the argv.
+        """
         try:
             completed = subprocess.run(
                 command.argv(),
@@ -190,19 +287,19 @@ class Compositor:
             )
         except subprocess.TimeoutExpired:
             return Diagnostic(
-                code=Code.MUX701_COMPOSITE_FAILED,
+                code=fail_code,
                 severity=Severity.ERROR,
                 message=f"ffmpeg timed out after {options.timeout_s:g}s while compositing",
             )
         except OSError as exc:
             return Diagnostic(
-                code=Code.MUX701_COMPOSITE_FAILED,
+                code=fail_code,
                 severity=Severity.ERROR,
                 message=f"could not launch ffmpeg ({options.executable!r}): {exc}",
             )
         if completed.returncode != 0 or not command.output.exists():
             return Diagnostic(
-                code=Code.MUX701_COMPOSITE_FAILED,
+                code=fail_code,
                 severity=Severity.ERROR,
                 message=f"ffmpeg exited {completed.returncode} while compositing",
             )

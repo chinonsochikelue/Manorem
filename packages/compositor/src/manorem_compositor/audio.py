@@ -8,11 +8,12 @@ those windows on a single clock. This module does that accumulation once, and is
 the single source of truth for global narration timing; :mod:`.subtitles` is a
 projection of it rather than a second copy of the arithmetic.
 
-**Silent in M1, by design not omission.** Every cue's ``asset`` is ``None`` until
-a TTS provider fills it in, so :attr:`AudioTimeline.is_silent` is ``True`` and the
-compositor adds no audio input. When speech exists the numbers change and the
-seam stays put -- the timeline still says when each segment plays, only now with a
-file behind it.
+**Silent until voiced, by design not omission.** Every cue's ``asset`` is
+``None`` in authored IR and stays that way whenever audio is disabled, so
+:attr:`AudioTimeline.is_silent` is ``True`` and the compositor adds no audio
+input. When the pipeline attaches synthesized clips the numbers are unchanged and
+the seam stays put -- the timeline still says when each segment plays, only now
+with a file behind it for the compositor to mix.
 """
 
 from __future__ import annotations
