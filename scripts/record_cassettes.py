@@ -111,6 +111,11 @@ def record(example: Example, manorem: list[str]) -> None:
     env = dict(os.environ)
     env["MANOREM_AI_RECORD"] = "1"
     env["MANOREM_LLM_PROVIDER"] = "cassette"  # force the record wrapper over any .env provider
+    # Record greedily deterministic: a cassette is a frozen fixture, and temperature
+    # 0 both steadies the output chain run-to-run (each stage's prompt embeds the
+    # previous stage's output, so drift cascades into new cassette keys) and tends to
+    # produce tighter patches that are less likely to hit the output ceiling.
+    env["MANOREM_LLM_TEMPERATURE"] = "0"
     with tempfile.TemporaryDirectory() as tmp:
         args = ["build", example.idea, "--no-audio", "-o", str(Path(tmp) / "record")]
         if example.corpus is not None:

@@ -220,7 +220,9 @@ class Pipeline:
         self._generator = IRGeneratorAgent(
             provider, model=light, temperature=temp, max_tokens=tokens
         )
-        self._repair_agent = RepairAgent(provider, model=light, temperature=temp, max_tokens=tokens)
+        self._repair_agent = RepairAgent(
+            provider, model=light, temperature=temp, max_tokens=cfg.llm_repair_max_tokens
+        )
 
     def build(
         self,
