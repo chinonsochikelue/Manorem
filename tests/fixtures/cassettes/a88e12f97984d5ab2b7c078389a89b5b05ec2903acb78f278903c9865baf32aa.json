@@ -1,0 +1,175 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "segments": [
+      {
+        "claims": [],
+        "end": null,
+        "id": "receiver_passive_mystery",
+        "mentions": [
+          "gps_receiver"
+        ],
+        "pause_after": 0.5,
+        "role": "question",
+        "start": null,
+        "text": "Your phone knows exactly where it is on Earth, yet it never transmits a signal back out into space.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "gps_satellite_constellation"
+        ],
+        "end": null,
+        "id": "constellation_broadcast",
+        "mentions": [
+          "gps_satellite",
+          "radio_signal"
+        ],
+        "pause_after": 0.8,
+        "role": "question",
+        "start": null,
+        "text": "Instead, an entire constellation of GPS satellites orbits overhead, continuously broadcasting precise radio timestamps.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "time_of_flight_ranging"
+        ],
+        "end": null,
+        "id": "time_of_flight_concept",
+        "mentions": [
+          "gps_receiver",
+          "radio_signal"
+        ],
+        "pause_after": 0.4,
+        "role": "mental_model",
+        "start": null,
+        "text": "When your phone picks up a broadcast, it checks the time stamp embedded inside the transmission.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "time_of_flight_ranging"
+        ],
+        "end": null,
+        "id": "calculating_distance",
+        "mentions": [
+          "radio_signal",
+          "gps_satellite"
+        ],
+        "pause_after": 0.8,
+        "role": "mental_model",
+        "start": null,
+        "text": "Multiplying the signal travel time by the speed of light yields the exact distance to that satellite.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "trilateration_four_satellites"
+        ],
+        "end": null,
+        "id": "single_sphere_geometry",
+        "mentions": [
+          "gps_satellite"
+        ],
+        "pause_after": 0.5,
+        "role": "complication",
+        "start": null,
+        "text": "Knowing your distance from a single satellite only places you somewhere on a vast imaginary sphere.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "trilateration_four_satellites"
+        ],
+        "end": null,
+        "id": "three_spheres_overlap",
+        "mentions": [
+          "gps_satellite",
+          "intersection_point"
+        ],
+        "pause_after": 0.5,
+        "role": "complication",
+        "start": null,
+        "text": "Three overlapping spheres narrow your location down to just two candidate points in space.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "trilateration_four_satellites"
+        ],
+        "end": null,
+        "id": "fourth_satellite_clock_bias",
+        "mentions": [
+          "gps_satellite",
+          "gps_receiver",
+          "intersection_point"
+        ],
+        "pause_after": 0.9,
+        "role": "complication",
+        "start": null,
+        "text": "A fourth satellite is required to pin down your location and correct for the receiver's imperfect internal clock.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "relativistic_clock_effects"
+        ],
+        "end": null,
+        "id": "relativity_impact",
+        "mentions": [
+          "gps_satellite"
+        ],
+        "pause_after": 0.5,
+        "role": "revelation",
+        "start": null,
+        "text": "Even geometry is not enough: atomic clocks in orbit tick faster than clocks on the ground due to general relativity.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "relativistic_clock_effects"
+        ],
+        "end": null,
+        "id": "relativity_correction",
+        "mentions": [
+          "gps_satellite"
+        ],
+        "pause_after": 0.8,
+        "role": "revelation",
+        "start": null,
+        "text": "Without daily relativistic adjustments, location calculations would drift by kilometers every day.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "convergent_solution",
+        "mentions": [
+          "radio_signal",
+          "intersection_point"
+        ],
+        "pause_after": 0.4,
+        "role": "conclusion",
+        "start": null,
+        "text": "With geometric alignment and relativistic corrections in sync, all four signals converge.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "instant_fix",
+        "mentions": [
+          "gps_receiver",
+          "intersection_point"
+        ],
+        "pause_after": 1.0,
+        "role": "conclusion",
+        "start": null,
+        "text": "In a fraction of a second, your device reveals your exact place on Earth.",
+        "wpm": null
+      }
+    ]
+  },
+  "schema": "Script"
+}

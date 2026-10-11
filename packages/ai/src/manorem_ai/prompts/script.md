@@ -15,7 +15,7 @@ the same timeline. Leave `start` and `end` unset.
 Return a `Script`:
 
 - `segments` -- ordered narration segments. For each:
-  - `id` -- a short kebab-case slug, unique in the script.
+  - `id` -- a short snake_case slug (lowercase letters, digits and underscores; no hyphens or spaces), unique in the script.
   - `role` -- the narration role, aligned with the beat it serves.
   - `text` -- the spoken line. Write for the ear: plain, concrete, one idea per
     segment. Avoid subordinate clauses that a listener cannot hold.

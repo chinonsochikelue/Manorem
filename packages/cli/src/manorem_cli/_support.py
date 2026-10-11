@@ -9,6 +9,8 @@ here so no command re-implements it and they all fail the same way.
 from __future__ import annotations
 
 import json
+import sys
+from datetime import datetime
 from pathlib import Path
 
 import typer
@@ -26,8 +28,26 @@ from manorem_ai import (
     StubTTSProvider,
     TTSProvider,
 )
-from manorem_ai.research import Document
-from manorem_core import ConfigError, DiagnosticBag, LLMProviderName, Settings, TTSProviderName
+from manorem_ai.research import (
+    BraveResearchProvider,
+    CassetteResearchProvider,
+    FixtureResearchProvider,
+    ResearchProvider,
+    RetrievedSource,
+    Source,
+    StubResearchProvider,
+)
+from manorem_core import (
+    PIPELINE_GEMINI_TOOLS,
+    ConfigError,
+    DiagnosticBag,
+    LLMProviderName,
+    ResearchProviderName,
+    Settings,
+    TTSProviderName,
+    gemini_credentials,
+    sha256_of,
+)
 from manorem_ir import Aspect
 
 
@@ -102,7 +122,9 @@ def build_provider(settings: Settings) -> LLMProvider:
     """
     provider = settings.llm_provider
     if provider is LLMProviderName.GEMINI:
-        return GeminiProvider(api_key=settings.gemini_key_or_raise)
+        credentials = gemini_credentials(settings)
+        credentials.validate(*PIPELINE_GEMINI_TOOLS)
+        return GeminiProvider(resolver=credentials)
     if provider is LLMProviderName.ANTHROPIC:
         return AnthropicProvider(
             api_key=_key_or_raise(settings.anthropic_api_key, "anthropic"),
@@ -123,7 +145,15 @@ def build_provider(settings: Settings) -> LLMProvider:
             cooldown_after_rate_limit=settings.keypool_cooldown,
         )
     if provider is LLMProviderName.CASSETTE:
-        inner = GeminiProvider(api_key=settings.gemini_key_or_raise) if settings.ai_record else None
+        inner: LLMProvider | None = None
+        if settings.ai_record:
+            # Deliberately *unpinned*: every stage draws its own tool's
+            # credential, so recording spend follows the same per-tool budgets
+            # as a live run instead of concentrating on one key. The recorded
+            # bytes do not depend on which credential paid for them.
+            credentials = gemini_credentials(settings)
+            credentials.validate(*PIPELINE_GEMINI_TOOLS)
+            inner = GeminiProvider(resolver=credentials)
         return CassetteProvider(settings.ai_cassette_dir, record=settings.ai_record, inner=inner)
     raise ConfigError(
         "the stub provider needs responses prepared in a test; set "
@@ -169,9 +199,93 @@ def build_tts_provider(settings: Settings) -> TTSProvider:
     )
 
 
-def load_corpus(path: Path | None) -> tuple[Document, ...]:
-    """Load a retrieved-document corpus (a JSON array) for the research provider."""
+def load_corpus(path: Path | None) -> tuple[RetrievedSource, ...]:
+    """Load a retrieved-document corpus (a JSON array) for the research provider.
+
+    Entries are flat ``{url, title?, snippet?, retrieved_at, content_hash?}``
+    records. A declared ``content_hash`` that is not the sha256 of the snippet
+    is a :class:`ConfigError`: the corpus claims bytes it does not contain. An
+    absent declaration is simply derived -- an entry that is only a URL and a
+    date is an empty source, not a rejection.
+    """
     if path is None:
         return ()
     data = json.loads(path.read_text(encoding="utf-8"))
-    return tuple(Document.model_validate(item) for item in data)
+    return tuple(_corpus_entry(item, index) for index, item in enumerate(data))
+
+
+def _corpus_entry(item: object, index: int) -> RetrievedSource:
+    """One flat corpus record as a retrieved source, or a loud refusal."""
+    if not isinstance(item, dict):
+        raise ConfigError(f"corpus entry {index} is not an object: {item!r}")
+    snippet = str(item.get("snippet", "") or "")
+    declared = item.get("content_hash")
+    if declared is not None and declared != sha256_of(snippet):
+        raise ConfigError(
+            f"corpus entry {index} declares content_hash {declared!r} which is not "
+            f"the sha256 of its snippet ({sha256_of(snippet)!r})"
+        )
+    try:
+        retrieved_at = datetime.fromisoformat(str(item["retrieved_at"]))
+    except (KeyError, ValueError) as exc:
+        raise ConfigError(f"corpus entry {index} needs an ISO retrieved_at: {exc}") from exc
+    try:
+        url = str(item["url"])
+    except KeyError as exc:
+        raise ConfigError(f"corpus entry {index} needs a url") from exc
+    source = Source.of(
+        url=url,
+        content=snippet,
+        title=str(item.get("title", "") or ""),
+        retrieved_at=retrieved_at,
+    )
+    return RetrievedSource(source=source, content=snippet)
+
+
+def build_research_provider(
+    settings: Settings, *, corpus: Path | None, offline: bool
+) -> tuple[ResearchProvider, ResearchProvider | None]:
+    """Choose the retrieval backend named in settings, honouring ``--offline``.
+
+    Offline is structural: a live backend is never constructed (so no key is
+    read and no socket opens) -- a configured ``brave`` replays its cassettes
+    with a notice, and asking to *record* cassettes offline is an error rather
+    than a silent downgrade. Online, the live backend always carries a recorded
+    fallback, so a retrieval failure stays on the record instead of inventing
+    a source.
+    """
+    provider = settings.research_provider
+    if offline:
+        if settings.research_record:
+            raise ConfigError(
+                "cannot refresh research cassettes while --offline: "
+                "recording needs the live backend"
+            )
+        if provider is ResearchProviderName.BRAVE:
+            print(
+                "offline pins research to its cassette replay; the live backend is not constructed",
+                file=sys.stderr,
+            )
+            return CassetteResearchProvider(settings.research_cassette_dir), None
+        if provider is ResearchProviderName.CASSETTE:
+            return CassetteResearchProvider(settings.research_cassette_dir), None
+        return FixtureResearchProvider(load_corpus(corpus)), None
+    if provider is ResearchProviderName.BRAVE:
+        key = _key_or_raise(settings.research_api_key, "research")
+        live: ResearchProvider = BraveResearchProvider(api_key=key)
+        return live, CassetteResearchProvider(settings.research_cassette_dir)
+    if provider is ResearchProviderName.CASSETTE:
+        if settings.research_record:
+            key = _key_or_raise(settings.research_api_key, "research")
+            return (
+                CassetteResearchProvider(
+                    settings.research_cassette_dir,
+                    record=True,
+                    inner=BraveResearchProvider(api_key=key),
+                ),
+                None,
+            )
+        return CassetteResearchProvider(settings.research_cassette_dir), None
+    if provider is ResearchProviderName.STUB:
+        return StubResearchProvider(load_corpus(corpus)), None
+    return FixtureResearchProvider(load_corpus(corpus)), None

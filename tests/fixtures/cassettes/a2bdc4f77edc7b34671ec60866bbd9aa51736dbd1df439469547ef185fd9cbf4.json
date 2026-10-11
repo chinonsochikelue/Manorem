@@ -1,0 +1,32 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "beat_id": "pinpoint_location_question",
+    "focus": [
+      "The blue location dot on the map",
+      "The converging signal links from orbital satellites down to the receiver"
+    ],
+    "how": "Start with a close-up focus on the handheld map rectangle at center stage. Highlight the location dot with a pulsing circle. Zoom the camera back smoothly into space to reveal the curvature of the globe, bring in satellite dots along orbital arcs, and use flow operations along connecting lines aimed at the user's ground marker.",
+    "persist": [
+      "The globe representing Earth",
+      "The orbital satellite nodes",
+      "The receiver ground dot"
+    ],
+    "rationale": "Grounded relatable imagery (the phone map dot) hooks viewer intuition before visual scale expansion reframes the ordinary action as an extraordinary technological coordination problem.",
+    "skills": [
+      "core",
+      "geography",
+      "networks"
+    ],
+    "what": [
+      "A phone frame rectangle enclosing a local map coordinate view",
+      "A pulsing blue dot marker pinpointing the user's position on the map",
+      "A planetary globe showing Earth at scale",
+      "Satellite node dots positioned in orbit above the globe",
+      "Signal flow lines connecting orbital satellites to the ground receiver position"
+    ],
+    "when": "As narration begins with opening a phone map, show the phone frame and map with the blue dot appearing. Midway through, as 'instantly knows where you are standing' completes, zoom out to reveal the globe and orbital satellite nodes, then connect incoming signal flows down to the receiver.",
+    "why": "Establishes the familiar everyday experience of opening a mapping app before expanding the view to the macroscopic mystery: how signals sent from thousands of kilometers away in space instantly pinpoint a user on the ground."
+  },
+  "schema": "VisualPlan"
+}

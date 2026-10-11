@@ -12,19 +12,19 @@ from __future__ import annotations
 from manorem_ai import Claim, ProvenanceValidator, ResearchBrief, SourceRef
 from manorem_ai.research import FixtureResearchProvider
 from manorem_core import Code
-from tests.support.ai_builders import GPS_URL, brief_citing, gps_document
+from tests.support.ai_builders import GPS_URL, brief_citing, gps_retrieved
 from tests.support.diag import error_codes
 
 
 def test_unretrieved_url_is_rejected() -> None:
-    documents = (gps_document(),)
+    documents = (gps_retrieved(),)
     brief = brief_citing("https://example.test/not-fetched")
     bag = ProvenanceValidator().validate(brief, documents)
     assert Code.RES801_UNRETRIEVED_SOURCE in error_codes(bag)
 
 
 def test_retrieved_url_passes() -> None:
-    documents = (gps_document(),)
+    documents = (gps_retrieved(),)
     bag = ProvenanceValidator().validate(brief_citing(GPS_URL), documents)
     assert not bag.has_errors
 
@@ -32,7 +32,7 @@ def test_retrieved_url_passes() -> None:
 def test_retrieved_but_unsupported_claim_passes_by_design() -> None:
     # The source is real (retrieved), but says nothing about the claim's content.
     # Provenance validation is not claim-to-evidence verification, so this passes.
-    documents = (gps_document(),)
+    documents = (gps_retrieved(),)
     brief = ResearchBrief(
         idea="How GPS works.",
         claims=(
@@ -48,6 +48,6 @@ def test_retrieved_but_unsupported_claim_passes_by_design() -> None:
 
 
 def test_fixture_provider_respects_limit() -> None:
-    docs = tuple(gps_document() for _ in range(3))
+    docs = tuple(gps_retrieved() for _ in range(3))
     provider = FixtureResearchProvider(docs)
     assert len(provider.retrieve("anything", limit=2)) == 2

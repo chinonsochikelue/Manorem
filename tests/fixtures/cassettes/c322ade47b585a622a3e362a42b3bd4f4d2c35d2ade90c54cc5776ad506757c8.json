@@ -1,0 +1,92 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "claims": [
+      {
+        "evidence": [],
+        "id": "gps_satellite_constellation",
+        "importance": "primary",
+        "sources": [],
+        "status": "unassessed",
+        "text": "The Global Positioning System relies on a constellation of orbiting satellites broadcasting continuous radio signals with precise timestamps and orbital parameters.",
+        "type": "fact"
+      },
+      {
+        "evidence": [],
+        "id": "time_of_flight_ranging",
+        "importance": "primary",
+        "sources": [],
+        "status": "unassessed",
+        "text": "A GPS receiver calculates its distance from a satellite by multiplying the speed of light by the time delay between signal transmission and arrival.",
+        "type": "causal"
+      },
+      {
+        "evidence": [],
+        "id": "trilateration_four_satellites",
+        "importance": "primary",
+        "sources": [],
+        "status": "unassessed",
+        "text": "A receiver requires signals from at least four satellites to simultaneously resolve three-dimensional position and correct the receiver clock bias.",
+        "type": "fact"
+      },
+      {
+        "evidence": [],
+        "id": "relativistic_clock_effects",
+        "importance": "supporting",
+        "sources": [],
+        "status": "unassessed",
+        "text": "Satellite atomic clocks run slightly faster than Earth-based clocks due to general relativity and must apply relativistic adjustments to maintain positioning accuracy.",
+        "type": "fact"
+      }
+    ],
+    "entities": [
+      {
+        "description": "An orbiting spacecraft carrying atomic clocks and radio transmitters that broadcast navigation data.",
+        "id": "gps_satellite",
+        "name": "GPS Satellite"
+      },
+      {
+        "description": "A ground-based or mobile device that detects satellite signals and computes its own coordinates.",
+        "id": "gps_receiver",
+        "name": "GPS Receiver"
+      },
+      {
+        "description": "An electromagnetic wave traveling at light speed carrying satellite ephemeris and precise transmission timestamps.",
+        "id": "radio_signal",
+        "name": "Radio Signal"
+      },
+      {
+        "description": "The common point of intersection among distance spheres representing the true receiver location.",
+        "id": "intersection_point",
+        "name": "Intersection Point"
+      }
+    ],
+    "evidence": [],
+    "idea": "How GPS determines your location.",
+    "open_questions": [
+      "What specific modern signals, such as L1 and L5 dual-frequency bands, should be covered?",
+      "How deeply should the visual narrative dive into receiver clock bias versus geometric trilateration?"
+    ],
+    "visual_candidates": [
+      {
+        "description": "Expanding spheres centered at multiple orbiting satellites that overlap, narrowing down candidate positions to a single intersection on Earth.",
+        "id": "spherical_trilateration",
+        "related_entities": [
+          "gps_satellite",
+          "gps_receiver",
+          "intersection_point"
+        ]
+      },
+      {
+        "description": "A visual timeline comparing the satellite timestamp embedded in the radio pulse against the receiver arrival time.",
+        "id": "signal_delay_measurement",
+        "related_entities": [
+          "gps_satellite",
+          "gps_receiver",
+          "radio_signal"
+        ]
+      }
+    ]
+  },
+  "schema": "ResearchBrief"
+}

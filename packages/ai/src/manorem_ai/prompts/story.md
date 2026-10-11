@@ -20,7 +20,7 @@ Return a `StoryOutline`:
 - `rationale` -- why this arc suits *this* subject. This is required: a run that
   cannot justify its arc has not made a decision.
 - `beats` -- the ordered beats that realize the arc. For each:
-  - `id` -- a short kebab-case slug, unique in the outline.
+  - `id` -- a short snake_case slug (lowercase letters, digits and underscores; no hyphens or spaces), unique in the outline.
   - `role` -- the beat's role in the arc (from the arc's role list where possible).
   - `purpose` -- what this beat accomplishes for the viewer, in one or two sentences.
   - `claims_used` -- ids of the brief's claims this beat rests on.

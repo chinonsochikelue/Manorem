@@ -1,0 +1,66 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "arc": "question_led",
+    "beats": [
+      {
+        "claims": [
+          {
+            "claim_id": "gps_satellite_constellation",
+            "treatment": "uses"
+          }
+        ],
+        "id": "the_silent_receiver",
+        "purpose": "Introduce the central mystery of how a smartphone pinpoints its location without broadcasting any signals back to orbit.",
+        "role": "question",
+        "visual_intent": "A solitary phone on the globe receiving passive radio signals from a constellation of orbiting satellites overhead."
+      },
+      {
+        "claims": [
+          {
+            "claim_id": "time_of_flight_ranging",
+            "treatment": "uses"
+          }
+        ],
+        "id": "time_of_flight_basics",
+        "purpose": "Establish the core mechanism that distance equals the speed of light multiplied by signal travel time.",
+        "role": "mental_model",
+        "visual_intent": "A timestamped radio wave leaving a satellite and traveling to a receiver, measuring the elapsed transit delay."
+      },
+      {
+        "claims": [
+          {
+            "claim_id": "trilateration_four_satellites",
+            "treatment": "uses"
+          }
+        ],
+        "id": "four_spheres_geometry",
+        "purpose": "Explain why one distance measurement only defines a sphere, and why a fourth satellite is required to resolve receiver clock bias.",
+        "role": "complication",
+        "visual_intent": "Three overlapping distance spheres narrowing the location to two points, followed by a fourth sphere locking the exact position and syncing the clock."
+      },
+      {
+        "claims": [
+          {
+            "claim_id": "relativistic_clock_effects",
+            "treatment": "uses"
+          }
+        ],
+        "id": "relativistic_adjustment",
+        "purpose": "Reveal that high-precision positioning would fail without accounting for relativistic time differences in satellite atomic clocks.",
+        "role": "revelation",
+        "visual_intent": "Side-by-side atomic clocks showing orbital clocks ticking slightly faster in weaker gravity than Earth-bound clocks."
+      },
+      {
+        "claims": [],
+        "id": "convergent_fix",
+        "purpose": "Bring the geometric and relativistic pieces together to show an instantaneous, accurate fix on the surface of Earth.",
+        "role": "conclusion",
+        "visual_intent": "All four satellite signals locking onto the receiver to illuminate the single true intersection point on the Earth map."
+      }
+    ],
+    "rationale": "The subject addresses an everyday technological mystery: how a passive handheld receiver computes its exact coordinates from space. The question-led arc naturally establishes the basic mental model of time-of-flight distance measurement, complicates it with the geometric need for four intersecting spheres and receiver clock bias, and reveals the non-intuitive relativistic physics required to achieve accuracy.",
+    "title": "How GPS Pinpoints Your Position on Earth"
+  },
+  "schema": "StoryOutline"
+}

@@ -1,0 +1,169 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "background": null,
+    "camera": {
+      "auto_frame": false,
+      "follow": null,
+      "initial": {
+        "center": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "width": 2.0
+      },
+      "max_width": 3.0,
+      "min_width": 0.4,
+      "reset_at_end": false
+    },
+    "duration_hint": null,
+    "groups": [],
+    "id": "measuring_light_delay",
+    "intent": "Demonstrate the one-way downlink broadcast from orbit and highlight the ground receiver's passive, listen-only role.",
+    "layout": {
+      "align": "center",
+      "columns": null,
+      "direction": "horizontal",
+      "gap": 0.15,
+      "kind": "centered",
+      "padding": 0.08,
+      "radius": null,
+      "region": {
+        "max_x": 1.0,
+        "max_y": 1.0,
+        "min_x": -1.0,
+        "min_y": -1.0
+      },
+      "rows": null,
+      "seed": 0,
+      "slots": [],
+      "start_angle": 90.0
+    },
+    "name": "Measuring Light Delay",
+    "narration": [],
+    "objects": [],
+    "relationships": [],
+    "skills": [
+      "core",
+      "networks",
+      "geography"
+    ],
+    "timeline": [
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_show_elements",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "earth_globe",
+          "satellite_node",
+          "receiver_device"
+        ],
+        "why": "Introduce the orbital satellite, curved Earth surface, and ground receiver on stage simultaneously."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_connect_downlink",
+        "op": "connect",
+        "params": {},
+        "targets": [
+          "satellite_node",
+          "receiver_device"
+        ],
+        "why": "Establish the directional downlink path from satellite to ground receiver."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_flow_signal",
+        "op": "flow",
+        "params": {},
+        "targets": [
+          "satellite_node",
+          "receiver_device"
+        ],
+        "why": "Depict downward broadcast signal packets traveling from satellite to receiver."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_focus_receiver",
+        "op": "zoom_to",
+        "params": {},
+        "targets": [
+          "receiver_device"
+        ],
+        "why": "Zoom in on the ground receiver when narration mentions it has no powerful transmitter."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_show_label",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "passive_label"
+        ],
+        "why": "Clarify that the receiver is strictly a passive listening device."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_highlight_receiver",
+        "op": "highlight",
+        "params": {},
+        "targets": [
+          "receiver_device"
+        ],
+        "why": "Draw final focus to the receiver absorbing the signal."
+      }
+    ],
+    "transition_in": {
+      "duration": 0.5,
+      "kind": "fade"
+    },
+    "transition_out": {
+      "duration": 0.5,
+      "kind": "fade"
+    }
+  },
+  "schema": "Scene"
+}

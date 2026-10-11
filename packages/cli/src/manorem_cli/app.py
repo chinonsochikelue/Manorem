@@ -17,11 +17,11 @@ from pathlib import Path
 
 import typer
 
-from manorem_ai import FixtureResearchProvider, Pipeline, PipelineError
+from manorem_ai import Pipeline, PipelineError
 from manorem_cli._support import (
     build_provider,
+    build_research_provider,
     build_tts_provider,
-    load_corpus,
     load_model,
     report,
     resolve_aspect,
@@ -34,6 +34,7 @@ from manorem_core import (
     DiagnosticBag,
     LLMProviderName,
     LocalFSStore,
+    ResearchProviderName,
     Settings,
     TTSProviderName,
     get_settings,
@@ -170,32 +171,63 @@ def _schema_json(name: str) -> str:
         raise typer.Exit(code=2) from None
 
 
-def _resolve_build_settings(settings: Settings, *, tts: str | None, offline: bool) -> Settings:
-    """Fold ``--tts`` and ``--offline`` into the settings the build will run against.
+def _resolve_build_settings(
+    settings: Settings,
+    *,
+    tts: str | None,
+    offline: bool,
+    research: bool | None = None,
+    research_provider: str | None = None,
+) -> Settings:
+    """Fold ``--tts``, ``--offline``, ``--research`` and ``--research-provider`` in.
 
-    ``--offline`` is a hard invariant: it pins the cassette LLM and the stub TTS and
-    wins over everything else, including an explicit ``--tts openai`` or an
-    environment that names a real provider -- so no real backend is even constructed.
-    Otherwise ``--tts`` overrides the configured speech provider verbatim.
+    ``--offline`` is a hard invariant: it pins the cassette LLM and the stub TTS,
+    turns off live recording, and wins over everything else, including an explicit
+    ``--tts openai`` or an environment that names a real provider -- so no real
+    backend is even constructed. Otherwise ``--tts`` overrides the configured
+    speech provider verbatim. Naming a research backend implies the stage is
+    wanted, so ``--research-provider brave`` enables research on its own; an
+    explicit ``--research`` / ``--no-research`` always wins.
     """
+    provider_choice: ResearchProviderName | None = None
+    if research_provider is not None:
+        try:
+            provider_choice = ResearchProviderName(research_provider)
+        except ValueError:
+            choices = ", ".join(p.value for p in ResearchProviderName)
+            typer.secho(
+                f"unknown research provider {research_provider!r} (choices: {choices})",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            raise typer.Exit(code=2) from None
+    update: dict[str, object] = {}
     if offline:
-        return settings.model_copy(
-            update={
+        update.update(
+            {
                 "llm_provider": LLMProviderName.CASSETTE,
                 "tts_provider": TTSProviderName.STUB,
+                "research_record": False,
             }
         )
-    if tts is None:
-        return settings
-    try:
-        provider = TTSProviderName(tts)
-    except ValueError:
-        choices = ", ".join(p.value for p in TTSProviderName)
-        typer.secho(
-            f"unknown tts provider {tts!r} (choices: {choices})", fg=typer.colors.RED, err=True
-        )
-        raise typer.Exit(code=2) from None
-    return settings.model_copy(update={"tts_provider": provider})
+    elif tts is not None:
+        try:
+            update["tts_provider"] = TTSProviderName(tts)
+        except ValueError:
+            choices = ", ".join(p.value for p in TTSProviderName)
+            typer.secho(
+                f"unknown tts provider {tts!r} (choices: {choices})",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            raise typer.Exit(code=2) from None
+    if research is not None:
+        update["research_enabled"] = research
+    elif provider_choice is not None:
+        update["research_enabled"] = True
+    if provider_choice is not None:
+        update["research_provider"] = provider_choice
+    return settings.model_copy(update=update) if update else settings
 
 
 @app.command()
@@ -225,24 +257,44 @@ def build(
         help="Guarantee no network: pin the cassette LLM and the stub TTS, refusing any "
         "real provider even if the environment asks for one.",
     ),
+    research: bool | None = typer.Option(
+        None,
+        "--research/--no-research",
+        help="Content intelligence: retrieve sources, locate each cited quote, record an "
+        "explicit claim/evidence relation, and refuse a claim it cannot trace "
+        "(default: MANOREM_RESEARCH_ENABLED).",
+    ),
+    research_provider: str | None = typer.Option(
+        None, "--research-provider", help="Retrieval backend: stub | fixture | cassette | brave."
+    ),
 ) -> None:
     """Run the whole pipeline: research -> story -> script -> IR -> render -> video."""
-    settings = _resolve_build_settings(get_settings(), tts=tts, offline=offline)
+    settings = _resolve_build_settings(
+        get_settings(),
+        tts=tts,
+        offline=offline,
+        research=research,
+        research_provider=research_provider,
+    )
     audio_on = settings.audio_enabled if audio is None else audio
     try:
         provider = build_provider(settings)
         tts_provider = build_tts_provider(settings) if audio_on else None
+        retrieval, retrieval_fallback = build_research_provider(
+            settings, corpus=corpus, offline=offline
+        )
     except ConfigError as exc:
         typer.secho(str(exc), fg=typer.colors.RED, err=True)
         raise typer.Exit(code=2) from None
 
     pipeline = Pipeline(
         provider,
-        FixtureResearchProvider(load_corpus(corpus)),
+        retrieval,
         store=LocalFSStore(output / "store"),
         visual_qa=GeometricVisualQA() if (vqa or settings.vqa_enabled) else None,
         tts=tts_provider,
         settings=settings,
+        research_fallback=retrieval_fallback,
     )
     try:
         result = pipeline.build(

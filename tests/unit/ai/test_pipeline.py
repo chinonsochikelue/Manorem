@@ -24,7 +24,7 @@ from manorem_ir import Aspect, narration_windows
 from tests.support.ai_builders import (
     GPS_URL,
     brief_citing,
-    gps_document,
+    gps_retrieved,
     outline,
     plan,
     script,
@@ -37,7 +37,7 @@ _HAS_FFMPEG = shutil.which("ffmpeg") is not None
 def _pipeline(provider: StubProvider, tmp_path: Path) -> Pipeline:
     return Pipeline(
         provider,
-        FixtureResearchProvider((gps_document(),)),
+        FixtureResearchProvider((gps_retrieved(),)),
         store=LocalFSStore(tmp_path / "store"),
     )
 
@@ -70,7 +70,7 @@ def test_build_with_stub_tts_makes_audio_the_timing_authority(tmp_path: Path) ->
     )
     pipeline = Pipeline(
         provider,
-        FixtureResearchProvider((gps_document(),)),
+        FixtureResearchProvider((gps_retrieved(),)),
         store=LocalFSStore(tmp_path / "store"),
         tts=StubTTSProvider(),
     )

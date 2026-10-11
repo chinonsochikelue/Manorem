@@ -1,0 +1,31 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "beat_id": "measuring_light_delay",
+    "focus": [
+      "The ground receiver absorbing downward signal pulses without transmitting back"
+    ],
+    "how": "Vertical composition: orbital satellite at top right, curved planetary arc with the receiver icon at bottom left. The satellite emits downstream signal pulses along a directed line to the receiver via flow. The camera then zooms in toward the receiver to highlight its passive reception role.",
+    "persist": [
+      "Satellite in orbit",
+      "Ground receiver",
+      "Planetary surface arc"
+    ],
+    "rationale": "By clearly showing one-way downward transmission and emphasizing the ground device's passive listening status, the visual aligns with the narration's core paradox: determining position strictly through incoming broadcast timing without two-way communication.",
+    "skills": [
+      "core",
+      "networks",
+      "geography"
+    ],
+    "what": [
+      "Satellite node positioned in high orbit",
+      "Ground receiver icon positioned on the Earth's surface",
+      "Downward directional communication link from satellite to receiver",
+      "Pulsing signal packets flowing from satellite to ground",
+      "Status label indicating 'Passive Receiver / Listen Only'"
+    ],
+    "when": "First, display the satellite in orbit and receiver on the ground. Next, establish the transmission link and initiate downward pulse flow. When the narration states 'has no transmitter powerful enough... it only listens', shift camera focus onto the receiver and reveal the passive listening label.",
+    "why": "The beat introduces the passive time-delay mechanism. Depicting the satellite actively broadcasting downward while the handheld receiver merely collects pulses visually establishes the one-way nature of GPS reception emphasized by the narration."
+  },
+  "schema": "VisualPlan"
+}

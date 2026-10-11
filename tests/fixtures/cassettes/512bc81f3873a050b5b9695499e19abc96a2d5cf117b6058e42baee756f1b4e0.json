@@ -1,0 +1,7 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "operations": []
+  },
+  "schema": "JsonPatch"
+}

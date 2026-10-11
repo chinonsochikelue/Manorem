@@ -1,0 +1,33 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "beat_id": "fourth_satellite_resolution",
+    "focus": [
+      "The convergence of the fourth circle onto the previous intersection",
+      "The single resolved receiver dot on the globe surface"
+    ],
+    "how": "Earth sits centered in the lower-middle viewport with satellite dots floating in orbital positions. Connect lines and expanding circles radiate from satellites. Camera executes a zoom_to focus onto the intersection point on the globe's surface as the uncertainty collapses into the receiver dot.",
+    "persist": [
+      "globe",
+      "satellite dots",
+      "receiver dot"
+    ],
+    "rationale": "Trilateration in GPS physically depends on time-of-flight measurements; bringing in the fourth satellite's range circle visually confirms how four spheres isolate a unique point in spacetime on Earth's surface.",
+    "skills": [
+      "core",
+      "geography",
+      "networks"
+    ],
+    "what": [
+      "A central globe showing Earth's surface",
+      "Four satellite dots positioned around orbit",
+      "Three intersecting distance circles representing prior satellite ranges",
+      "A fourth satellite circle that expands and overlaps the intersection",
+      "A math element showing d = c * delta_t for signal delay calculation",
+      "A highlighted receiver dot marking the exact resolved ground position"
+    ],
+    "when": "Earth, the first three satellites, and their overlapping intersection circles appear first. As the narration introduces signal delay and the speed of light, the math formula displays and the fourth satellite transmits. Finally, the fourth circle converges, collapsing the intersection area into the single receiver dot.",
+    "why": "Demonstrates the payoff where the fourth satellite eliminates clock ambiguity, converting signal time delay into exact distance and locking the receiver to a single precise coordinate."
+  },
+  "schema": "VisualPlan"
+}
