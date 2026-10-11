@@ -21,10 +21,21 @@ Four transforms carry the weight:
   ``prefixItems: [...]``. Neither keyword exists in Gemini's subset, but neither
   can simply be dropped: an emptied property is valid JSON Schema meaning "any"
   and is rejected by Gemini, and an array left without ``items`` is rejected
-  too. Both are re-spelled as the construct Gemini does take -- ``anyOf`` and
-  ``items`` -- while ``discriminator`` itself is still discarded. Both bugs
-  shared a shape worth naming: they looked correct locally, because nothing
-  local validates against a provider, and only failed at the request boundary.
+  too. The tuple is re-spelled as ``items``; the union is *flattened* (next
+  point), and ``discriminator`` itself is still discarded. Both bugs shared a
+  shape worth naming: they looked correct locally, because nothing local
+  validates against a provider, and only failed at the request boundary.
+* **A tagged union of objects is fused into one object.** A ``oneOf``/``anyOf``
+  whose branches are all objects sharing a single-value tag (``SceneObject.props``
+  is 21 such branches, keyed by ``kind``) is not kept as a union: measured on
+  ``gemini-3.8-flash``, a *required* many-branch union is answered with a
+  degenerate member -- the wrong tag and none of its fields -- so every object
+  fails validation and the scene is unbuildable, even though the request itself
+  is accepted. In its place goes a single object whose tag is an ``enum`` over
+  every branch, whose other fields are merged and left optional, and whose only
+  required field is the tag -- a shape the sampler fills correctly. The per-branch
+  requirements are not lost: Pydantic re-checks the real discriminated union on
+  the answer, exactly as it re-checks the array bounds the shim drops.
 * **``const`` becomes a one-value ``enum``.** Discriminated-union tags render as
   ``const``; Gemini has no ``const`` but does have ``enum``, and a single-element
   enum means the same thing.
@@ -191,7 +202,7 @@ def _convert_plain(node: _JsonObj, defs: _JsonObj, stack: tuple[str, ...]) -> _J
 
 
 def _convert_any_of(members: list[_JsonObj], defs: _JsonObj, stack: tuple[str, ...]) -> _JsonObj:
-    """Collapse ``T | None`` to nullable; keep genuine unions as ``anyOf``."""
+    """Collapse ``T | None`` to nullable; flatten a tagged object union; else ``anyOf``."""
     non_null = [m for m in members if m.get("type") != "null"]
     nullable = len(non_null) != len(members)
 
@@ -202,7 +213,67 @@ def _convert_any_of(members: list[_JsonObj], defs: _JsonObj, stack: tuple[str, .
         return collapsed
 
     converted = [_convert(m, defs, stack) for m in non_null]
+    flattened = _flatten_tagged_union(converted)
+    if flattened is not None:
+        if nullable:
+            flattened["nullable"] = True
+        return flattened
+
     out: _JsonObj = {"anyOf": converted}
     if nullable:
         out["nullable"] = True
+    return out
+
+
+def _flatten_tagged_union(members: list[_JsonObj]) -> _JsonObj | None:
+    """Fuse a discriminated union of objects into one object, or ``None`` if it is not one.
+
+    Measured on ``gemini-3.8-flash``: a required field typed as a many-branch
+    ``anyOf`` (``SceneObject.props`` is 21 branches) is answered with a degenerate
+    member -- the wrong discriminator and none of its required fields -- so every
+    object fails validation and the scene is unbuildable. One object the sampler
+    *can* fill replaces it: the discriminator becomes an ``enum`` over every tag,
+    the other fields are merged and left optional, and only the discriminator is
+    required. The per-branch field requirements are not lost -- Pydantic re-checks
+    the identical discriminated union on the answer, exactly as it does for the
+    array bounds the shim also drops.
+    """
+    if not members or not all(
+        m.get("type") == "object" and isinstance(m.get("properties"), dict) for m in members
+    ):
+        return None
+
+    common = set(members[0]["properties"])
+    for member in members[1:]:
+        common &= set(member["properties"])
+    discriminator = next(
+        (
+            key
+            for key in sorted(common)
+            if all(len(m["properties"][key].get("enum", [])) == 1 for m in members)
+        ),
+        None,
+    )
+    if discriminator is None:
+        return None
+
+    merged: _JsonObj = {}
+    tags: list[Any] = []
+    tag_type: str | None = None
+    for member in members:
+        for key, sub in member["properties"].items():
+            if key == discriminator:
+                tags.extend(sub["enum"])
+                tag_type = tag_type or sub.get("type")
+            elif key not in merged:
+                merged[key] = sub
+
+    tag_schema: _JsonObj = {"enum": list(dict.fromkeys(tags))}
+    if tag_type is not None:
+        tag_schema["type"] = tag_type
+    merged[discriminator] = tag_schema
+
+    out: _JsonObj = {"type": "object", "properties": merged, "required": [discriminator]}
+    if len(merged) > 1:
+        out["propertyOrdering"] = []
     return out
