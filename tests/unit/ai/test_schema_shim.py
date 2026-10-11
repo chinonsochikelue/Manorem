@@ -111,20 +111,23 @@ def test_required_and_properties_survive() -> None:
     assert "persist" not in schema["required"]
 
 
-def test_discriminated_union_survives_as_an_anyof() -> None:
-    # Pydantic emits ``oneOf`` + ``discriminator`` for a tagged union, and the
-    # allowlist used to drop both before anything could rewrite the ``oneOf`` --
-    # leaving the field ``{}``, which means "any" to JSON Schema and is *invalid*
-    # to Gemini, so the whole request was rejected. The union must be re-spelled,
-    # never emptied.
+def test_discriminated_union_is_flattened_into_one_tagged_object() -> None:
+    # Pydantic emits ``oneOf`` + ``discriminator`` for a tagged union. The allowlist
+    # used to drop both, leaving the field ``{}`` ("any"), which Gemini rejects. It
+    # is now re-spelled as a *single* object -- not an ``anyOf`` -- because measured
+    # on gemini-3.8-flash a required many-branch union is answered with a degenerate
+    # member (wrong tag, no fields). The flattened object keeps every branch's fields
+    # (merged, optional) and an ``enum`` tag that is the only required field.
     shape = to_gemini_schema(_Unioned)["properties"]["shape"]
     assert shape != {}
-    assert "oneOf" not in shape
+    assert "oneOf" not in shape and "anyOf" not in shape
     assert "discriminator" not in shape
-    members = shape["anyOf"]
-    assert len(members) == 2
-    kinds = {member["properties"]["kind"]["enum"][0] for member in members}
-    assert kinds == {"circle", "square"}
+    assert shape["type"] == "object"
+    # The discriminator is required; it enumerates every branch's tag.
+    assert shape["required"] == ["kind"]
+    assert set(shape["properties"]["kind"]["enum"]) == {"circle", "square"}
+    # Every branch's own fields survive on the merged object.
+    assert {"r", "side"} <= set(shape["properties"])
 
 
 def test_no_field_degrades_to_an_empty_schema() -> None:
