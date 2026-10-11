@@ -7,10 +7,15 @@ model emits **Visual IR** — a strongly typed, validated, versioned document �
 deterministic compiler turns that into concrete render instructions.
 
 ```
-idea ─► research ─► story ─► script ─► visual plan ─► Visual IR ─► validate ─► compile ─► render ─► composite ─► video
+idea ─► research ─► evidence ─► story ─► script ─► visual plan ─► Visual IR ─► validate ─► compile ─► render ─► composite ─► video
                                                           ▲            │
                                                           └── repair ◄─┘   (bounded, diagnostic-driven)
 ```
+
+Research and evidence are *opt-in* (`build --research`) and write an inspectable
+`out/research/` directory; story beats and script segments then have to name the
+claim ids they use, so a sentence resting on a claim nobody researched cannot
+become narration.
 
 ## Two layers, one rule
 
@@ -39,7 +44,7 @@ package boundaries are banned by lint, so the dependency graph stays acyclic.
 | `manorem-compiler` | passes P0–P8: normalize, resolve, expand, layout, schedule, camera, frame, lower, verify |
 | `manorem-renderer` | the `Renderer` protocol, the fixed Manim plan interpreter, a stub renderer, subprocess sandbox |
 | `manorem-compositor` | FFmpeg argv builder, scene concatenation, audio timeline, SRT/VTT subtitles |
-| `manorem-ai` | `LLMProvider` (Gemini / cassette / stub), the planning agents, the content-addressed pipeline, bounded repair |
+| `manorem-ai` | `LLMProvider` (Gemini / cassette / stub), the planning agents, the content-addressed pipeline, bounded repair, and the research/evidence layer (`ResearchRequest → Source → Evidence → Claim → ClaimEvidenceLink`) |
 | `manorem-cli` | the `manorem` command line and the integration-test entry point |
 
 ## Security boundary, expressed structurally
@@ -52,13 +57,22 @@ never expressions or code. This is the security boundary written into the types
 rather than enforced by policy. Renders run in a subprocess with a timeout so a
 runaway or crashing render is contained.
 
-## What Milestone 1 does *not* claim
+Retrieved web content joins that same category. It is fetched and stored as
+bytes, stripped to text, and reaches prompts only inside a delimited
+`UNTRUSTED RETRIEVED CONTENT` block with an instruction not to follow anything
+found there — it is never treated as instructions itself.
+
+## What this design does *not* claim
 
 - **Render succeeded ≠ visual quality succeeded.** M1 renders are not assessed for
   visual quality; `RenderResult.quality` is `None` (not "assumed good"). The Visual
   QA stage (`VQA6xx`) is designed into the pipeline but not implemented.
-- **Provenance ≠ correctness.** Provenance validation proves a cited URL was
-  actually retrieved; it does not prove the source supports the claim.
+- **Provenance ≠ support, and support ≠ truth.** `RES801` proves a cited URL was
+  actually retrieved and nothing more. Whether a located span *supports* a claim
+  is a separate, explicit `ClaimEvidenceLink`, folded by `derive_status` into a
+  `ClaimStatus` (`RES804`–`RES806`). Neither statement is a claim about truth:
+  there is no factuality score anywhere — only claim, evidence, relation, status
+  and source.
 - **No TTS.** Narration timings are estimated from a words-per-minute model, so the
   video is silent-but-timed with synced subtitles. The retime seam is in place.
 

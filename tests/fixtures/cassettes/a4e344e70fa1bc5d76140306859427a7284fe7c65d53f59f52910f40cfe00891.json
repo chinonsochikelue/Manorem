@@ -1,0 +1,139 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "segments": [
+      {
+        "claims": [],
+        "end": null,
+        "id": "passive_phone_listen",
+        "mentions": [
+          "gps_receiver"
+        ],
+        "pause_after": 0.4,
+        "role": "question",
+        "start": null,
+        "text": "Your phone never transmits a signal back to space.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "how_to_pinpoint",
+        "mentions": [
+          "gps_receiver",
+          "gps_satellite"
+        ],
+        "pause_after": 0.8,
+        "role": "question",
+        "start": null,
+        "text": "So how does it pinpoint your exact location purely by listening to the sky?",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "atomic_clock_precision"
+        ],
+        "end": null,
+        "id": "atomic_clock_broadcast",
+        "mentions": [
+          "gps_satellite",
+          "radio_signal"
+        ],
+        "pause_after": 0.5,
+        "role": "mental_model",
+        "start": null,
+        "text": "Each GPS satellite carries an ultra-precise atomic clock, continuously broadcasting a time-stamped radio signal.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "gps_trilateration_principle"
+        ],
+        "end": null,
+        "id": "trilateration_spheres",
+        "mentions": [
+          "radio_signal",
+          "gps_satellite",
+          "gps_receiver"
+        ],
+        "pause_after": 0.6,
+        "role": "mental_model",
+        "start": null,
+        "text": "Because radio waves travel at the speed of light, measuring signal travel time reveals your distance to the satellite, placing you on an expanding sphere.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "receiver_clock_problem",
+        "mentions": [
+          "gps_receiver"
+        ],
+        "pause_after": 0.4,
+        "role": "complication",
+        "start": null,
+        "text": "In theory, three intersecting spheres narrow your position down to a single point on Earth.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "imperfect_quartz_drift",
+        "mentions": [
+          "gps_receiver"
+        ],
+        "pause_after": 0.7,
+        "role": "complication",
+        "start": null,
+        "text": "In reality, your phone relies on an ordinary quartz clock. A drift of just one microsecond throws distance calculations off by hundreds of meters.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "minimum_satellite_requirement"
+        ],
+        "end": null,
+        "id": "fourth_satellite_solution",
+        "mentions": [
+          "gps_satellite"
+        ],
+        "pause_after": 0.4,
+        "role": "revelation",
+        "start": null,
+        "text": "The solution is locking onto a fourth satellite.",
+        "wpm": null
+      },
+      {
+        "claims": [
+          "minimum_satellite_requirement"
+        ],
+        "end": null,
+        "id": "solve_clock_and_position",
+        "mentions": [
+          "gps_receiver",
+          "radio_signal"
+        ],
+        "pause_after": 0.6,
+        "role": "revelation",
+        "start": null,
+        "text": "Four simultaneous distance measurements allow the receiver to solve for four variables at once: latitude, longitude, altitude, and its own clock error.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "global_seamless_tracking",
+        "mentions": [
+          "gps_receiver",
+          "gps_satellite"
+        ],
+        "pause_after": 1.0,
+        "role": "conclusion",
+        "start": null,
+        "text": "By turning an imperfect clock into a solvable equation, GPS provides precise navigation anywhere on Earth.",
+        "wpm": null
+      }
+    ]
+  },
+  "schema": "Script"
+}

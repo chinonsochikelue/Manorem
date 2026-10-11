@@ -1,0 +1,129 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "segments": [
+      {
+        "claims": [],
+        "end": null,
+        "id": "phone_locates_instantly",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "question",
+        "start": null,
+        "text": "Every time you open a map on your phone, it instantly knows where you are standing.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "receiver_only_listens",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "question",
+        "start": null,
+        "text": "Yet your device has no transmitter powerful enough to reach orbit; it only listens.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "satellites_broadcast_time",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "mental_model",
+        "start": null,
+        "text": "High above, an entire constellation of GPS satellites continuously broadcasts precise time codes and orbital coordinates.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "timing_gives_distance",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "mental_model",
+        "start": null,
+        "text": "Because radio waves travel at the speed of light, calculating signal delay gives the exact distance to each satellite.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "single_sphere_concept",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "mental_model",
+        "start": null,
+        "text": "Knowing this distance means you are located somewhere on the surface of an invisible sphere centered on that satellite.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "second_satellite_intersection",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "complication",
+        "start": null,
+        "text": "Adding a second satellite creates two intersecting spheres that meet along a circular ring.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "third_satellite_two_points",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "complication",
+        "start": null,
+        "text": "A third satellite narrows those possibilities down to just two distinct points in space.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "receiver_clock_bias_problem",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "complication",
+        "start": null,
+        "text": "Earth rules out one point, but your phone's cheap internal clock cannot measure billionths of a second accurately.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "fourth_satellite_introduction",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "payoff",
+        "start": null,
+        "text": "To overcome this limitation, your receiver listens for a fourth satellite.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "four_equations_four_unknowns",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "payoff",
+        "start": null,
+        "text": "Four signals create four equations, solving simultaneously for three dimensions of position plus your clock's exact error.",
+        "wpm": null
+      },
+      {
+        "claims": [],
+        "end": null,
+        "id": "precise_coordinate_lock",
+        "mentions": [],
+        "pause_after": 0.3,
+        "role": "payoff",
+        "start": null,
+        "text": "The timing offsets cancel out, locking your location on Earth down to a single pinpoint.",
+        "wpm": null
+      }
+    ]
+  },
+  "schema": "Script"
+}

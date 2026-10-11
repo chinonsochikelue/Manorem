@@ -1,0 +1,60 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "arc": "question_led",
+    "beats": [
+      {
+        "claims": [],
+        "id": "question_silent_listening",
+        "purpose": "Pose the core question of how a passive receiver determines its exact coordinate purely by listening to radio signals from space.",
+        "role": "question",
+        "visual_intent": "A smartphone on the ground receiving faint radio waves from overhead satellites without broadcasting any signal back."
+      },
+      {
+        "claims": [
+          {
+            "claim_id": "atomic_clock_precision",
+            "treatment": "uses"
+          },
+          {
+            "claim_id": "gps_trilateration_principle",
+            "treatment": "uses"
+          }
+        ],
+        "id": "mental_model_trilateration",
+        "purpose": "Introduce the fundamental mechanism: calculating distance from the travel time of timestamped atomic broadcasts to create intersecting range spheres.",
+        "role": "mental_model",
+        "visual_intent": "Expanding spherical range shells radiating from orbital satellites at the speed of light, intersecting on the surface of the Earth."
+      },
+      {
+        "claims": [],
+        "id": "complication_clock_bias",
+        "purpose": "Reveal that while three spheres geometrically intersect at two points, receiver clocks lack atomic synchronization, making exact transit times uncertain.",
+        "role": "complication",
+        "visual_intent": "A close-up diagram contrasting the satellite's atomic clock tick with a drift-prone receiver quartz oscillator, blurring the intersecting range surfaces."
+      },
+      {
+        "claims": [
+          {
+            "claim_id": "minimum_satellite_requirement",
+            "treatment": "uses"
+          }
+        ],
+        "id": "revelation_fourth_satellite",
+        "purpose": "Demonstrate how introducing a fourth satellite creates a system of equations that solves for the three spatial dimensions and receiver clock bias simultaneously.",
+        "role": "revelation",
+        "visual_intent": "A fourth expanding shell snapping the blurred intersection into one precise spatial coordinate and aligning receiver time."
+      },
+      {
+        "claims": [],
+        "id": "conclusion_global_fix",
+        "purpose": "Summarize how continuous multi-satellite time-of-flight measurements provide seamless, instant positioning anywhere on Earth.",
+        "role": "conclusion",
+        "visual_intent": "A dynamic orbital constellation maintaining continuous lines of sight to a user traveling across the rotating planet."
+      }
+    ],
+    "rationale": "The subject addresses a familiar everyday marvel ('How does GPS know where I am?'). Starting with this intuitive question, establishing the basic geometric model of sphere intersection, complicating it with clock synchronization errors, and resolving it with the fourth satellite delivers the cleanest explanation.",
+    "title": "How GPS Pinpoints You with Pure Timing"
+  },
+  "schema": "StoryOutline"
+}

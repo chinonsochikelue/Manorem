@@ -23,12 +23,20 @@ from manorem_core.errors import (
     RenderError,
     UnsafePathError,
 )
+from manorem_core.gemini import (
+    GeminiCredentialResolver,
+    GeminiKeyMode,
+    GeminiTool,
+    gemini_credentials,
+)
 from manorem_core.hashing import canonical_bytes, canonical_json, sha256_of, short_digest
 from manorem_core.ids import Slug, is_valid_slug, new_run_id, slugify, validate_slug
 from manorem_core.logging import bind_context, clear_context, configure_logging, get_logger
 from manorem_core.settings import (
+    PIPELINE_GEMINI_TOOLS,
     LLMProviderName,
     RenderQuality,
+    ResearchProviderName,
     Settings,
     TTSProviderName,
     get_settings,
@@ -36,6 +44,7 @@ from manorem_core.settings import (
 from manorem_core.storage import LocalFSStore, ObjectStore, validate_key
 
 __all__ = [
+    "PIPELINE_GEMINI_TOOLS",
     "SEMANTIC_ERROR_CODES",
     "Code",
     "CompileError",
@@ -43,6 +52,9 @@ __all__ = [
     "Diagnostic",
     "DiagnosticBag",
     "DiagnosticError",
+    "GeminiCredentialResolver",
+    "GeminiKeyMode",
+    "GeminiTool",
     "IRValidationError",
     "LLMProviderName",
     "LocalFSStore",
@@ -50,6 +62,7 @@ __all__ = [
     "ObjectStore",
     "RenderError",
     "RenderQuality",
+    "ResearchProviderName",
     "Settings",
     "Severity",
     "Slug",
@@ -60,6 +73,7 @@ __all__ = [
     "canonical_json",
     "clear_context",
     "configure_logging",
+    "gemini_credentials",
     "get_logger",
     "get_settings",
     "is_valid_slug",

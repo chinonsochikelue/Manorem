@@ -1,0 +1,63 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "arc": "question_led",
+    "beats": [
+      {
+        "claims": [
+          {
+            "claim_id": "satellite_constellation_signals",
+            "treatment": "uses"
+          }
+        ],
+        "id": "pinpoint_location_question",
+        "purpose": "Hook the viewer with the everyday mystery of how a small ground receiver pinpoints its position using signals sent from orbit.",
+        "role": "question",
+        "visual_intent": "A smartphone on Earth receiving radio signals from an orbital constellation of satellites."
+      },
+      {
+        "claims": [
+          {
+            "claim_id": "pseudorange_calculation",
+            "treatment": "uses"
+          },
+          {
+            "claim_id": "satellite_constellation_signals",
+            "treatment": "uses"
+          }
+        ],
+        "id": "measuring_light_delay",
+        "purpose": "Introduce the foundational mechanism of calculating distance by timing radio wave transmission at the speed of light.",
+        "role": "mental_model",
+        "visual_intent": "Synchronized radio waves carrying timestamps pulsing from an orbital satellite to a ground receiver."
+      },
+      {
+        "claims": [
+          {
+            "claim_id": "four_satellites_trilateration",
+            "treatment": "uses"
+          }
+        ],
+        "id": "trilateration_and_clock_bias",
+        "purpose": "Demonstrate that overlapping distance spheres in three dimensions still leave an unknown receiver clock bias.",
+        "role": "complication",
+        "visual_intent": "Three intersecting 3D spheres centered on satellites narrowing location to two points, with a shifting receiver clock offset."
+      },
+      {
+        "claims": [
+          {
+            "claim_id": "four_satellites_trilateration",
+            "treatment": "uses"
+          }
+        ],
+        "id": "fourth_satellite_resolution",
+        "purpose": "Show how the fourth satellite eliminates clock error and locks in the precise three-dimensional coordinate.",
+        "role": "payoff",
+        "visual_intent": "A fourth sphere converging with the intersection, collapsing the uncertainty to a single precise point on the surface."
+      }
+    ],
+    "rationale": "The subject addresses a familiar everyday wonder—how a phone precisely locates itself on Earth using signals from space. A question-led arc allows us to establish the core distance-measuring mechanism intuitively, introduce the geometric and timing puzzle, and then resolve it cleanly with the four-satellite requirement.",
+    "title": "How GPS Pinpoints Your Exact Location"
+  },
+  "schema": "StoryOutline"
+}

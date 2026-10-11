@@ -1,0 +1,62 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "background": null,
+    "camera": {
+      "auto_frame": false,
+      "follow": null,
+      "initial": {
+        "center": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "width": 2.0
+      },
+      "max_width": 3.0,
+      "min_width": 0.4,
+      "reset_at_end": false
+    },
+    "duration_hint": null,
+    "groups": [],
+    "id": "pinpoint_location_question",
+    "intent": "Open on a handheld phone map pinpointing the user with a pulsing blue dot, then zoom out to planetary scale showing Earth and orbiting satellites beaming signals down to the receiver.",
+    "layout": {
+      "align": "center",
+      "columns": null,
+      "direction": "horizontal",
+      "gap": 0.15,
+      "kind": "centered",
+      "padding": 0.08,
+      "radius": null,
+      "region": {
+        "max_x": 1.0,
+        "max_y": 1.0,
+        "min_x": -1.0,
+        "min_y": -1.0
+      },
+      "rows": null,
+      "seed": 0,
+      "slots": [],
+      "start_angle": 90.0
+    },
+    "name": "Pinpoint Location Question",
+    "narration": [],
+    "objects": [],
+    "relationships": [],
+    "skills": [
+      "core",
+      "geography",
+      "networks"
+    ],
+    "timeline": [],
+    "transition_in": {
+      "duration": 0.0,
+      "kind": "fade"
+    },
+    "transition_out": {
+      "duration": 0.0,
+      "kind": "fade"
+    }
+  },
+  "schema": "Scene"
+}

@@ -43,6 +43,55 @@ class TTSProviderName(StrEnum):
     OPENAI = "openai"
 
 
+class ResearchProviderName(StrEnum):
+    """Retrieval backends for content intelligence.
+
+    ``stub`` and ``fixture`` serve a fixed in-memory corpus (offline, no keys);
+    ``cassette`` replays committed recordings (and, with ``MANOREM_RESEARCH_RECORD``,
+    records them from the live backend); ``brave`` is the one real, opt-in
+    provider and is unreachable under ``--offline``.
+    """
+
+    STUB = "stub"
+    FIXTURE = "fixture"
+    CASSETTE = "cassette"
+    BRAVE = "brave"
+
+
+class GeminiKeyMode(StrEnum):
+    SHARED = "shared"
+    DEDICATED = "dedicated"
+
+
+class GeminiTool(StrEnum):
+    CASSETTE = "cassette"
+    RESEARCH = "research"
+    REPAIR = "repair"
+    SCENE = "scene"
+    EVIDENCE = "evidence"
+    SCRIPT = "script"
+    STORY = "story"
+    VISUAL_PLAN = "visual_plan"
+
+    @property
+    def env_var(self) -> str:
+        """The env variable this tool reads in dedicated mode."""
+        return f"MANOREM_{self.value.upper()}_GEMINI_APIKEY"
+
+
+# Shared key fields that pydantic-settings ignores (extra="ignore") so they never
+# leak into .env or telemetry. The singular ``MANOREM_GEMINI_API_KEY`` is still
+# accepted as a legacy alias by ``gemini_key_or_raise``.
+MANOREM_CASSETTE_GEMINI_APIKEY: str = ""
+MANOREM_RESEARCH_GEMINI_APIKEY: str = ""
+MANOREM_REPAIR_GEMINI_APIKEY: str = ""
+MANOREM_SCENE_GEMINI_APIKEY: str = ""
+MANOREM_EVIDENCE_GEMINI_APIKEY: str = ""
+MANOREM_SCRIPT_GEMINI_APIKEY: str = ""
+MANOREM_STORY_GEMINI_APIKEY: str = ""
+MANOREM_VISUAL_PLAN_GEMINI_APIKEY: str = ""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="MANOREM_",
@@ -85,8 +134,27 @@ class Settings(BaseSettings):
     ai_record: bool = Field(default=False, description="Refresh cassettes from live calls")
     ai_cassette_dir: Path = Field(default=Path("tests/fixtures/cassettes"))
 
+    # Legacy field name accepted for backward compatibility; new code uses
+    # ``gemini_api_key`` (with underscore) which the ``gemini_key_or_raise``
+    # property checks first. Both are ``SecretStr`` instances.
+    gemini_apikey: SecretStr | None = Field(
+        default=None, description="Legacy: MANOREM_GEMINI_API_KEY (deprecated)."
+    )
+
     # --- repair loop --------------------------------------------------------
     max_repair_attempts: int = Field(default=2, ge=0, le=5)
+
+    # --- research -------------------------------------------------------------
+    research_enabled: bool = Field(
+        default=False, description="Run the content-intelligence stage (retrieve, assess, trace)"
+    )
+    research_provider: ResearchProviderName = Field(default=ResearchProviderName.FIXTURE)
+    research_record: bool = Field(default=False, description="Refresh research cassettes")
+    research_api_key: SecretStr | None = Field(default=None)
+    research_cassette_dir: Path = Field(default=Path("tests/fixtures/research_cassettes"))
+    research_cache_ttl_s: float = Field(
+        default=86400.0, gt=0.0, description="Reuse a retrieval within this window"
+    )
 
     # --- render -------------------------------------------------------------
     render_quality: RenderQuality = Field(default=RenderQuality.DRAFT)
@@ -96,10 +164,6 @@ class Settings(BaseSettings):
     )
 
     # --- visual QA ----------------------------------------------------------
-    #: Off by default so ``build`` stays a renderer-only promise unless a command
-    #: explicitly asks for QA (``build --vqa``). When on, the pipeline assesses each
-    #: render with the deterministic geometric checks and routes error-severity
-    #: VQA6xx findings to the same bounded repair loop the semantic errors use.
     vqa_enabled: bool = Field(default=False, description="Assess renders with GeometricVisualQA")
 
     # --- narration ----------------------------------------------------------
@@ -108,10 +172,6 @@ class Settings(BaseSettings):
     )
 
     # --- audio / TTS --------------------------------------------------------
-    #: Off by default so ``build`` stays a silent-but-timed promise unless a command
-    #: explicitly asks for speech (``build --audio``). When on, synthesized clip
-    #: durations become the narration timing authority; WPM is the fallback whenever
-    #: a scene's audio is unavailable.
     audio_enabled: bool = Field(default=False, description="Synthesize narration audio")
     tts_provider: TTSProviderName = Field(default=TTSProviderName.STUB)
     tts_voice: str = Field(default="narrator", description="Provider-neutral voice label")
@@ -129,14 +189,77 @@ class Settings(BaseSettings):
     )
     tts_model: str = Field(default="tts-1", description="Model id for the real speech provider")
 
+    # --- Gemini key mode ----------------------------------------------------
+    gemini_key_mode: GeminiKeyMode = Field(
+        default=GeminiKeyMode.SHARED,
+        description="How per-tool Gemini credentials are resolved",
+    )
+    gemini_allow_shared_fallback: bool = Field(
+        default=False,
+        description="If true and a tool has no dedicated key, silently fall back "
+        "to the shared credential (MANOREM_GEMINI_APIKEY). Off by default so "
+        "a missing variable is always a loud ConfigError.",
+    )
+
+    # Per-tool Gemini API keys (dedicated mode). Each corresponds to
+    # ``MANOREM_<TOOL>_GEMINI_APIKEY`` set by the operator. Defaults to ``None``
+    # so that a missing variable is always a loud ``ConfigError`` rather than a
+    # silent fallthrough. The test helper ``_dedicated`` passes these as keyword
+    # arguments keyed by ``<tool>_gemini_apikey``.
+    cassette_gemini_apikey: SecretStr | None = Field(
+        default=None, description="Key for the cassette tool"
+    )
+    research_gemini_apikey: SecretStr | None = Field(
+        default=None, description="Key for the research tool"
+    )
+    repair_gemini_apikey: SecretStr | None = Field(
+        default=None, description="Key for the repair tool"
+    )
+    scene_gemini_apikey: SecretStr | None = Field(
+        default=None, description="Key for the scene tool"
+    )
+    evidence_gemini_apikey: SecretStr | None = Field(
+        default=None, description="Key for the evidence tool"
+    )
+    script_gemini_apikey: SecretStr | None = Field(
+        default=None, description="Key for the script tool"
+    )
+    story_gemini_apikey: SecretStr | None = Field(
+        default=None, description="Key for the story tool"
+    )
+    visual_plan_gemini_apikey: SecretStr | None = Field(
+        default=None, description="Key for the visual plan tool"
+    )
+
     @property
     def gemini_key_or_raise(self) -> str:
-        if self.gemini_api_key is None:
-            raise ConfigError(
-                "MANOREM_GEMINI_API_KEY is not set. Set it, or use "
-                "MANOREM_LLM_PROVIDER=cassette to replay recorded responses."
-            )
-        return self.gemini_api_key.get_secret_value()
+        # Shared mode: one credential serves all tools.
+        # Prefer the new env var name, fall back to the legacy field name
+        # that the test suite constructs directly (``gemini_apikey``).
+        if self.gemini_apikey is not None:
+            return self.gemini_apikey.get_secret_value()
+        if self.gemini_api_key is not None:
+            return self.gemini_api_key.get_secret_value()
+        # No key configured — give a clear error that names the variables
+        # the operator can set, without exposing any value.
+        raise ConfigError(
+            "MANOREM_GEMINI_APIKEY is not set. Set it (MANOREM_GEMINI_API_KEY "
+            "is still accepted as a legacy alias), or use "
+            "MANOREM_LLM_PROVIDER=cassette to replay recorded responses."
+        )
+
+
+# Tools used by the live pipeline when --offline is not set. CASSETTE is excluded
+# because cassette-record mode selects its own credential independently.
+PIPELINE_GEMINI_TOOLS: tuple[GeminiTool, ...] = (
+    GeminiTool.EVIDENCE,
+    GeminiTool.RESEARCH,
+    GeminiTool.SCENE,
+    GeminiTool.SCRIPT,
+    GeminiTool.STORY,
+    GeminiTool.VISUAL_PLAN,
+    GeminiTool.REPAIR,
+)
 
 
 @lru_cache(maxsize=1)

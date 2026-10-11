@@ -15,12 +15,45 @@ plan.
 
 from __future__ import annotations
 
+from enum import StrEnum
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from manorem_core import Slug
 from manorem_ir import NarrationRole, NarrationSegment
 
-__all__ = ["Beat", "Script", "StoryOutline", "VisualPlan"]
+__all__ = ["Beat", "BeatClaim", "ClaimTreatment", "Script", "StoryOutline", "VisualPlan"]
+
+
+class ClaimTreatment(StrEnum):
+    """How a story beat chooses to use a claim whose support is not clean.
+
+    Omission is deliberately *not* a value: a beat that does not list a claim
+    does not make it, so the enum only has to cover the three ways a claim can
+    appear. That a planner chose to ``qualify`` rather than state a contradicted
+    claim outright is then an inspectable field on the beat, and is checked by
+    name (``RES814``) -- a structured decision, not a hidden heuristic.
+    """
+
+    USES = "uses"
+    QUALIFIES = "qualifies"
+    PRESENTS_DISAGREEMENT = "presents_disagreement"
+
+
+class BeatClaim(BaseModel):
+    """One research claim this beat rests on, and how the beat presents it.
+
+    Traceability and epistemic care in one field: ``claim_id`` says *what* the
+    beat rests on, ``treatment`` says *how* it is being used. For a claim whose
+    status is ``contradicted`` or ``partially_supported``, ``uses`` is a promise
+    the script is expected to keep -- stating it flatly -- and the alternatives
+    are the two honest ways to say less than the sources agree on.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    claim_id: Slug
+    treatment: ClaimTreatment = ClaimTreatment.USES
 
 
 class Beat(BaseModel):
@@ -31,11 +64,16 @@ class Beat(BaseModel):
     id: Slug
     role: NarrationRole
     purpose: str = Field(min_length=1, max_length=600)
-    #: Ids of the research claims this beat rests on, for traceability.
-    claims_used: tuple[str, ...] = ()
+    #: Research claims this beat rests on, each with how it chooses to present one.
+    claims: tuple[BeatClaim, ...] = ()
     #: What the beat should show, in the director's words -- the seed the visual
     #: planner turns into concrete objects and cues.
     visual_intent: str = Field(min_length=1, max_length=600)
+
+    @property
+    def claims_used(self) -> tuple[str, ...]:
+        """Ids of the claims this beat rests on -- the traceability view of ``claims``."""
+        return tuple(link.claim_id for link in self.claims)
 
 
 class StoryOutline(BaseModel):

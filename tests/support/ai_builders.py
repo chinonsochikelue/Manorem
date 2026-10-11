@@ -11,17 +11,23 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from manorem_ai.agents.models import Beat, Script, StoryOutline, VisualPlan
-from manorem_ai.research import Claim, Document, ResearchBrief, SourceRef
+from manorem_ai.research import Claim, ResearchBrief, RetrievedSource, Source, SourceRef
 from manorem_ir import NarrationRole, NarrationSegment
 
 GPS_URL = "https://example.test/gps"
+GPS_SNIPPET = "A receiver trilaterates its position from satellite signal timing."
 
 
-def gps_document() -> Document:
-    return Document.of(
-        GPS_URL,
-        "How GPS works",
-        "A receiver trilaterates its position from satellite signal timing.",
+def gps_retrieved() -> RetrievedSource:
+    """The one retrieved source almost every AI test cites."""
+    return RetrievedSource(source=gps_source(), content=GPS_SNIPPET)
+
+
+def gps_source() -> Source:
+    return Source.of(
+        url=GPS_URL,
+        content=GPS_SNIPPET,
+        title="How GPS works",
         retrieved_at=datetime(2026, 1, 1, tzinfo=UTC),
     )
 

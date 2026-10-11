@@ -1,0 +1,190 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "background": null,
+    "camera": {
+      "auto_frame": false,
+      "follow": null,
+      "initial": {
+        "center": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "width": 2.0
+      },
+      "max_width": 3.0,
+      "min_width": 0.4,
+      "reset_at_end": false
+    },
+    "duration_hint": null,
+    "groups": [],
+    "id": "trilateration_and_clock_bias",
+    "intent": "Demonstrate the satellite constellation broadcast geometry and trilateration range sphere intersections around Earth, emphasizing the clock bias readout.",
+    "layout": {
+      "align": "center",
+      "columns": null,
+      "direction": "horizontal",
+      "gap": 0.15,
+      "kind": "centered",
+      "padding": 0.08,
+      "radius": null,
+      "region": {
+        "max_x": 1.0,
+        "max_y": 1.0,
+        "min_x": -1.0,
+        "min_y": -1.0
+      },
+      "rows": null,
+      "seed": 0,
+      "slots": [],
+      "start_angle": 90.0
+    },
+    "name": "Trilateration and Clock Bias",
+    "narration": [],
+    "objects": [],
+    "relationships": [],
+    "skills": [
+      "core",
+      "geography",
+      "networks"
+    ],
+    "timeline": [
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_show_earth",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "earth_globe"
+        ],
+        "why": "Reveal Earth as the central planetary reference frame for the orbit constellation."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_show_satellites",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "sat_1",
+          "sat_2",
+          "sat_3"
+        ],
+        "why": "Introduce the orbiting GPS satellites in medium Earth orbit."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_show_range_circles",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "range_circle_1",
+          "range_circle_2",
+          "range_circle_3"
+        ],
+        "why": "Illustrate broadcasted range spheres expanding toward the surface."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_show_intersections",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "intersect_dot_1",
+          "intersect_dot_2"
+        ],
+        "why": "Mark the candidate intersection solutions on the surface."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_show_readout",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "readout_clock_bias"
+        ],
+        "why": "Display the time code broadcast and residual clock bias offset readout."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_focus_trilateration",
+        "op": "focus",
+        "params": {},
+        "targets": [
+          "intersect_dot_1",
+          "intersect_dot_2",
+          "readout_clock_bias"
+        ],
+        "why": "Frame the overlapping range solution region and timing data."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_highlight_intersections",
+        "op": "highlight",
+        "params": {},
+        "targets": [
+          "intersect_dot_1",
+          "intersect_dot_2"
+        ],
+        "why": "Emphasize candidate intersection points awaiting clock bias correction."
+      }
+    ],
+    "transition_in": {
+      "duration": 0.8,
+      "kind": "fade"
+    },
+    "transition_out": {
+      "duration": 0.8,
+      "kind": "fade"
+    }
+  },
+  "schema": "Scene"
+}

@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import time
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -36,6 +37,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from manorem_ai.agents import (
+    EvidenceAssessmentAgent,
     IRGeneratorAgent,
     RepairAgent,
     ResearchAgent,
@@ -52,8 +54,19 @@ from manorem_ai.research import (
     Document,
     ProvenanceValidator,
     ResearchBrief,
+    ResearchError,
     ResearchProvider,
+    ResearchRequest,
+    ResearchResult,
+    RetrievedSource,
+    Source,
+    apply_assessment,
+    extract_evidence,
+    research_cache_key,
+    write_research_artifacts,
 )
+from manorem_ai.research.validate import ResearchValidator
+from manorem_ai.traceability import validate_traceability
 from manorem_ai.tts import TTSError, TTSProvider, TTSRequest, tts_cache_key, wav_duration_seconds
 from manorem_compiler import CompileOptions, RenderPlan, compile_project
 from manorem_compositor import CompositionResult, Compositor
@@ -130,6 +143,9 @@ class PipelineResult:
     #: ``None`` when audio is disabled (``tts=None``) -- the silent pipeline, which
     #: stays byte-identical to the pre-M3 run.
     audio: dict[str, object] | None = None
+    #: Bounded research repairs used by this run. Zero unless content intelligence
+    #: ran and a quote had to be re-asked for -- it counts re-runs, not stages.
+    research_attempts: int = 0
 
     @property
     def video(self) -> Path | None:
@@ -167,10 +183,16 @@ class Pipeline:
         tts: TTSProvider | None = None,
         registry: SkillRegistry | None = None,
         settings: Settings | None = None,
+        research_fallback: ResearchProvider | None = None,
     ) -> None:
         cfg = settings or get_settings()
         self._settings = cfg
         self._research = research
+        # A recorded fallback for the live retrieval backend, carried through so a
+        # retrieval failure stays on the record instead of inventing a source. The
+        # content-intelligence stage that consumes it is still being migrated onto
+        # the research package; until then it is held, never silently dropped.
+        self._research_fallback = research_fallback
         self._store = store
         self._renderer: Renderer = renderer or StubRenderer()
         self._compositor = compositor or Compositor()
@@ -178,12 +200,16 @@ class Pipeline:
         self._tts = tts
         self._registry = registry or default_registry()
         self._provenance = ProvenanceValidator()
+        self._research_validator = ResearchValidator()
 
         temp = cfg.llm_temperature
         tokens = cfg.llm_max_tokens
         light = cfg.gemini_model
         heavy = cfg.gemini_model_heavy
         self._research_agent = ResearchAgent(
+            provider, model=light, temperature=temp, max_tokens=tokens
+        )
+        self._evidence_agent = EvidenceAssessmentAgent(
             provider, model=light, temperature=temp, max_tokens=tokens
         )
         self._story_agent = StoryAgent(provider, model=heavy, temperature=temp, max_tokens=tokens)
@@ -208,10 +234,17 @@ class Pipeline:
         digests: dict[str, str] = {}
         work = (workspace or self._settings.workspace_root).resolve()
         work.mkdir(parents=True, exist_ok=True)
+        research_bag = DiagnosticBag()
 
-        documents = self._research.retrieve(idea)
-        brief = self._research_agent.run(idea, documents).value
-        self._check_provenance(brief, documents)
+        if self._settings.research_enabled:
+            brief, documents, research_attempts = self._research_stage(
+                idea, work, digests, research_bag
+            )
+        else:
+            documents = self._research.retrieve(idea)
+            brief = self._research_agent.run(idea, documents).value
+            self._check_provenance(brief, documents)
+            research_attempts = 0
         digests["brief"] = self._persist(brief)
 
         outline = self._story_agent.run(brief).value
@@ -219,6 +252,8 @@ class Pipeline:
 
         script = self._script_agent.run(outline).value
         digests["script"] = self._persist(script)
+        if self._settings.research_enabled:
+            self._check_traceability(outline, script, brief, research_bag)
         pacing = pace_script(script.segments, wpm=self._settings.narration_wpm)
 
         plans, scenes = self._author_scenes(outline, script, digests)
@@ -234,6 +269,7 @@ class Pipeline:
                 + "; ".join(str(d) for d in bag.errors)
             )
         bag.extend(audio_bag)
+        bag.extend(research_bag)
 
         project, plan, render, report, composition, visual_attempts = self._render_qa_repair(
             project, plan, options, work, assets
@@ -260,11 +296,14 @@ class Pipeline:
             repair_attempts=attempts + visual_attempts,
             digests=digests,
             audio=audio_summary,
+            research_attempts=research_attempts,
         )
 
     # -- stages ---------------------------------------------------------------
 
-    def _check_provenance(self, brief: ResearchBrief, documents: tuple[Document, ...]) -> None:
+    def _check_provenance(
+        self, brief: ResearchBrief, documents: Sequence[Source | RetrievedSource]
+    ) -> None:
         """Reject a brief that cites a URL that was never retrieved (guardrail #2)."""
         bag = self._provenance.validate(brief, documents)
         if bag.has_errors:
@@ -272,6 +311,147 @@ class Pipeline:
                 "brief cites sources that were not retrieved (fabricated provenance): "
                 + "; ".join(str(d) for d in bag.errors)
             )
+
+    def _check_traceability(
+        self,
+        outline: StoryOutline,
+        script: Script,
+        brief: ResearchBrief,
+        research_bag: DiagnosticBag,
+    ) -> None:
+        """Refuse a plan that cites claims the brief never made (guardrail #3).
+
+        A beat or segment naming a claim id nobody researched would put an
+        untraceable sentence into narration, so an ``RES807`` here raises before
+        anything is rendered -- exactly as fabricated provenance does. Anything
+        less than an error (an unsupported claim stated anyway, an unused claim,
+        an untraced line) is reported into the run's diagnostics, never silent.
+        """
+        trace = validate_traceability(outline, script, brief)
+        if trace.has_errors:
+            raise PipelineError(
+                "script references claims that do not exist in the brief: "
+                + "; ".join(str(d) for d in trace.errors)
+            )
+        research_bag.extend(trace)
+
+    def _research_request(self, idea: str) -> ResearchRequest:
+        """The retrieval request for an idea: the topic, in the user's words."""
+        return ResearchRequest(topic=idea)
+
+    def _retrieve(
+        self, request: ResearchRequest, bag: DiagnosticBag
+    ) -> tuple[ResearchResult, ResearchProvider]:
+        """Fetch retrieval, and name the backend that actually produced it.
+
+        A failed primary falls back to the recorded provider with the
+        substitution on the record (``RES809``); with no fallback the build
+        fails rather than inventing a source.
+        """
+        try:
+            return self._cached_or_fetch(self._research, request), self._research
+        except ResearchError as exc:
+            if self._research_fallback is None:
+                raise PipelineError(f"research retrieval failed: {exc}") from exc
+            bag.add(
+                Code.RES809_RESEARCH_PROVIDER_FAILED,
+                f"research retrieval failed on {self._research.name}: {exc}; "
+                "using the recorded fallback",
+                severity=Severity.WARNING,
+                hint="The substitution is on the record; the run did not invent a source.",
+            )
+            try:
+                return (
+                    self._cached_or_fetch(self._research_fallback, request),
+                    self._research_fallback,
+                )
+            except ResearchError as fallback_exc:
+                raise PipelineError(f"research retrieval failed: {fallback_exc}") from fallback_exc
+
+    def _cached_or_fetch(
+        self, provider: ResearchProvider, request: ResearchRequest
+    ) -> ResearchResult:
+        """One retrieval, reused within its TTL.
+
+        Providers that are already free and deterministic (an empty
+        ``cache_identity``) are never cached: a second layer would only be a
+        second place to go stale. Everything else is content-addressed under
+        ``research/cache/`` in the run's store, so a second lookup within the
+        TTL never calls the provider again.
+        """
+        identity = provider.cache_identity
+        if not identity:
+            return provider.research(request)
+        key = f"research/cache/{research_cache_key(request, provider=identity)}.json"
+        if self._store.exists(key):
+            path = self._store.local_path(key)
+            age_s = time.time() - path.stat().st_mtime
+            if age_s < self._settings.research_cache_ttl_s:
+                return ResearchResult.model_validate_json(path.read_text(encoding="utf-8"))
+        result = provider.research(request)
+        self._store.put_text(key, result.model_dump_json(indent=2))
+        return result
+
+    def _research_stage(
+        self,
+        idea: str,
+        work: Path,
+        digests: dict[str, str],
+        research_bag: DiagnosticBag,
+    ) -> tuple[ResearchBrief, tuple[Document, ...], int]:
+        """Retrieve, brief, locate, assess -- the content-intelligence stage.
+
+        The brief is repaired, boundedly, while its quotes refuse to locate;
+        evidence is assessed by the model only once spans exist to assess; and
+        artifacts land on disk before validation runs, so a failed build is
+        still inspectable. Returns the brief, the M1-shaped documents, and the
+        number of repair re-runs the brief needed.
+        """
+        request = self._research_request(idea)
+        result, provider = self._retrieve(request, research_bag)
+
+        brief = self._research_agent.run(idea, result.retrieved).value
+        attempts = 0
+        extract_bag = DiagnosticBag()
+        evidence = extract_evidence(brief, result, extract_bag)
+        while extract_bag.has_errors and attempts < self._settings.max_repair_attempts:
+            brief = self._research_agent.run(
+                idea, result.retrieved, diagnostics=extract_bag.errors
+            ).value
+            attempts += 1
+            extract_bag = DiagnosticBag()
+            evidence = extract_evidence(brief, result, extract_bag)
+        if extract_bag.has_errors:
+            raise PipelineError(
+                "research repair hit its bound (bounded repair loop): quotes still "
+                "unlocatable after "
+                f"{attempts} re-run(s): " + "; ".join(str(d) for d in extract_bag.errors)
+            )
+
+        brief = brief.model_copy(update={"evidence": evidence})
+        if evidence:
+            assessment = self._evidence_agent.run(brief, result).value
+            assess_bag = DiagnosticBag()
+            brief = apply_assessment(brief, assessment, assess_bag)
+            research_bag.extend(assess_bag)
+
+        manifest = write_research_artifacts(
+            work, brief, result, provider=provider.name, store=self._store
+        )
+        digests["research"] = self._persist(manifest)
+
+        self._check_provenance(brief, result.sources)
+        validation = self._research_validator.validate(brief, result, store=self._store)
+        if validation.has_errors:
+            raise PipelineError(
+                "research validation failed: " + "; ".join(str(d) for d in validation.errors)
+            )
+        research_bag.extend(validation)
+
+        documents = tuple(
+            Document(source=item.source, content=item.content) for item in result.retrieved
+        )
+        return brief, documents, attempts
 
     def _author_scenes(
         self, outline: StoryOutline, script: Script, digests: dict[str, str]

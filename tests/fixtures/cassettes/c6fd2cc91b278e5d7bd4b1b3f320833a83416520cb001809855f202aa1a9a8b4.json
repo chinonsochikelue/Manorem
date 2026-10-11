@@ -1,0 +1,75 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "claims": [
+      {
+        "evidence": [],
+        "id": "satellite_constellation_signals",
+        "importance": "primary",
+        "sources": [],
+        "status": "unassessed",
+        "text": "The Global Positioning System relies on a constellation of satellites transmitting synchronized radio signals with precise timestamps.",
+        "type": "fact"
+      },
+      {
+        "evidence": [],
+        "id": "pseudorange_calculation",
+        "importance": "primary",
+        "sources": [],
+        "status": "unassessed",
+        "text": "A GPS receiver calculates its distance to a satellite by multiplying the speed of light by the signal transmission time delay.",
+        "type": "causal"
+      },
+      {
+        "evidence": [],
+        "id": "four_satellites_trilateration",
+        "importance": "primary",
+        "sources": [],
+        "status": "unassessed",
+        "text": "Signals from at least four satellites are mathematically required to solve for three spatial dimensions and correct the receiver's internal clock bias.",
+        "type": "fact"
+      }
+    ],
+    "entities": [
+      {
+        "description": "An orbital satellite carrying precise atomic clocks and radio transmitters that continuously broadcast ephemeris and timing data.",
+        "id": "gps_satellite",
+        "name": "GPS Satellite"
+      },
+      {
+        "description": "A device on Earth that captures satellite signals, measures signal propagation time, and calculates position coordinates.",
+        "id": "gps_receiver",
+        "name": "GPS Receiver"
+      },
+      {
+        "description": "High-precision timekeeping instrument on board satellites maintaining nanosecond-level synchronization.",
+        "id": "atomic_clock",
+        "name": "Atomic Clock"
+      }
+    ],
+    "evidence": [],
+    "idea": "How GPS determines your location",
+    "open_questions": [
+      "How significantly do ionospheric delays alter consumer receiver accuracy without differential correction?",
+      "What exact mathematical formulation is standard for consumer chipsets solving receiver clock offset?"
+    ],
+    "visual_candidates": [
+      {
+        "description": "An animation depicting satellites orbiting Earth and emitting spherical radio waves toward ground level.",
+        "id": "vis_satellite_broadcast",
+        "related_entities": [
+          "gps_satellite"
+        ]
+      },
+      {
+        "description": "A 3D spatial model showing three spheres intersecting at two points, followed by a fourth sphere isolating the exact receiver coordinates.",
+        "id": "vis_trilateration_spheres",
+        "related_entities": [
+          "gps_satellite",
+          "gps_receiver"
+        ]
+      }
+    ]
+  },
+  "schema": "ResearchBrief"
+}

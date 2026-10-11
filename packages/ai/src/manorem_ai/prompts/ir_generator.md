@@ -17,6 +17,10 @@ or anything Manim-specific. The compiler owns all of that.
 
 Return one `Scene`:
 
+Every `id` you mint is a snake_case slug -- lowercase letters, digits and
+underscores, no hyphens or spaces -- and ids carried over from the plan are reused
+verbatim.
+
 - `id`, `name`, `intent` -- identify the scene and state what it is for.
 - `skills` -- the skill packs the plan selected.
 - `objects` -- the semantic objects, each with a `kind` from the vocabulary, an `id`,
@@ -44,3 +48,27 @@ Return one `Scene`:
 - Satisfy each operation's required params and target-kind constraints.
 - Keep timing relative and narration-anchored so the compiler can schedule it.
 - Describe intent, not geometry. No coordinates, no frame numbers, no aspect.
+
+## Shape of a correct scene (excerpt)
+
+`kind` and `props.kind` must always agree, and every cue target must be
+declared above it. A scene that references undeclared ids, or pairs a kind
+with another kind's props, is rejected -- not repaired -- so get this right
+the first time:
+
+```json
+{
+  "objects": [
+    {"id": "locator_dot", "kind": "dot",
+     "props": {"kind": "dot", "radius": 0.06}},
+    {"id": "caption", "kind": "text",
+     "props": {"kind": "text", "content": "You are here", "role": "caption"}}
+  ],
+  "timeline": [
+    {"id": "cue_show_dot", "op": "show", "targets": ["locator_dot"],
+     "why": "Introduce the marker."},
+    {"id": "cue_show_caption", "op": "show", "targets": ["caption"],
+     "why": "Label it for the viewer."}
+  ]
+}
+```

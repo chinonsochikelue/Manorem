@@ -21,7 +21,7 @@ from manorem_ai.agents.models import Script, StoryOutline, VisualPlan
 from manorem_ai.provider import Completion
 from manorem_ai.research import ResearchBrief
 from manorem_ir import Scene
-from tests.support.ai_builders import brief_citing, gps_document, outline, plan, script
+from tests.support.ai_builders import brief_citing, gps_retrieved, outline, plan, script
 from tests.support.ir_builders import valid_scene
 
 
@@ -50,7 +50,7 @@ class _RecordingStub:
 
 def test_research_agent_returns_a_brief() -> None:
     stub = _RecordingStub(brief_citing())
-    result = ResearchAgent(stub, model="m").run("idea", (gps_document(),))
+    result = ResearchAgent(stub, model="m").run("idea", (gps_retrieved(),))
     assert stub.schema_seen is ResearchBrief
     assert isinstance(result.value, ResearchBrief)
 

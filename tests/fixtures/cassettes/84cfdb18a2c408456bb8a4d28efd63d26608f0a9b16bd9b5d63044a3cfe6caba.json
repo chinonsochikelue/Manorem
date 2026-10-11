@@ -1,0 +1,29 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "beat_id": "question_silent_listening",
+    "focus": [
+      "The smartphone receiver on the ground remaining completely passive while receiving incoming signals"
+    ],
+    "how": "Vertical composition with the satellite anchored at the upper third and the phone at the lower third. Connect satellite to phone, then trigger a downward flow animation. Use focus to frame the phone receiver and de-emphasize the space segment as the narration finishes.",
+    "persist": [
+      "smartphone receiver",
+      "satellite icon"
+    ],
+    "rationale": "Directly confronts the viewer with the core engineering paradox: if the device never sends a ping, how can it compute its exact position? Keeping visual noise low and isolating the one-way downlink makes the listening-only constraint unmistakable.",
+    "skills": [
+      "core",
+      "networks"
+    ],
+    "what": [
+      "A satellite icon positioned at the top of the frame representing space",
+      "A smartphone rectangle icon positioned at the bottom representing the ground receiver",
+      "A directional connection line between the satellite and phone",
+      "A downward signal pulse flowing from satellite to phone",
+      "A status text badge indicating passive receive-only mode"
+    ],
+    "when": "The satellite and phone are shown at the start. As narration begins ('Your phone never transmits...'), a connection forms and signals flow downward from the satellite. The camera then focuses tightly on the phone to highlight the absence of any outgoing signals.",
+    "why": "Establishes the fundamental asymmetry of GPS: satellites transmit signals down to Earth, while the user receiver remains entirely silent with no uplink."
+  },
+  "schema": "VisualPlan"
+}

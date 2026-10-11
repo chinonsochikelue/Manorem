@@ -1,0 +1,189 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "background": null,
+    "camera": {
+      "auto_frame": false,
+      "follow": null,
+      "initial": {
+        "center": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "width": 2.0
+      },
+      "max_width": 3.0,
+      "min_width": 0.4,
+      "reset_at_end": false
+    },
+    "duration_hint": null,
+    "groups": [],
+    "id": "fourth_satellite_resolution",
+    "intent": "Demonstrate how the fourth satellite resolves clock error and isolates the receiver position on Earth's surface via signal delay calculation.",
+    "layout": {
+      "align": "center",
+      "columns": null,
+      "direction": "horizontal",
+      "gap": 0.15,
+      "kind": "centered",
+      "padding": 0.08,
+      "radius": null,
+      "region": {
+        "max_x": 1.0,
+        "max_y": 1.0,
+        "min_x": -1.0,
+        "min_y": -1.0
+      },
+      "rows": null,
+      "seed": 0,
+      "slots": [],
+      "start_angle": 90.0
+    },
+    "name": "Fourth Satellite Resolution",
+    "narration": [],
+    "objects": [],
+    "relationships": [],
+    "skills": [
+      "core",
+      "geography",
+      "networks"
+    ],
+    "timeline": [
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_show_earth_and_orbit",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "earth_globe",
+          "sat_1",
+          "sat_2",
+          "sat_3",
+          "range_circle_1",
+          "range_circle_2",
+          "range_circle_3"
+        ],
+        "why": "Establish Earth with the initial three satellites and their intersecting uncertainty spheres."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_show_formula",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "distance_formula"
+        ],
+        "why": "Introduce the physical relationship between time delay and satellite distance as voiceover explains speed of light."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_show_fourth_satellite",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "sat_4"
+        ],
+        "why": "Introduce the fourth satellite into orbit."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_expand_fourth_range",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "range_circle_4"
+        ],
+        "why": "Propagate the fourth range sphere to intersect the target area."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_resolve_receiver",
+        "op": "show",
+        "params": {},
+        "targets": [
+          "receiver_dot"
+        ],
+        "why": "Lock the resolved receiver coordinate onto the Earth's surface."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_highlight_receiver",
+        "op": "highlight",
+        "params": {},
+        "targets": [
+          "receiver_dot"
+        ],
+        "why": "Emphasize the collapse of uncertainty into the ground coordinate."
+      },
+      {
+        "at": {
+          "at": "absolute",
+          "seconds": 0.0
+        },
+        "duration": {
+          "kind": "auto"
+        },
+        "easing": null,
+        "id": "cue_zoom_to_receiver",
+        "op": "zoom_to",
+        "params": {},
+        "targets": [
+          "receiver_dot",
+          "earth_globe"
+        ],
+        "why": "Frame closely onto the finalized receiver position on Earth."
+      }
+    ],
+    "transition_in": {
+      "duration": 0.5,
+      "kind": "fade"
+    },
+    "transition_out": {
+      "duration": 0.5,
+      "kind": "fade"
+    }
+  },
+  "schema": "Scene"
+}

@@ -1,0 +1,31 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "beat_id": "trilateration_and_clock_bias",
+    "focus": [
+      "The intersection points of the expanding range circles near the globe surface",
+      "The clock bias text readout"
+    ],
+    "how": "The globe is centered with satellites distributed at triangular orbital positions. Outlined range circles expand smoothly toward Earth via propagate or show. Camera uses focus to center on the intersection zone near Earth's surface where the ambiguous solution points emerge.",
+    "persist": [
+      "The central globe",
+      "The three satellite icons and orbital positions"
+    ],
+    "rationale": "Because the vocabulary lacks native 3D volumetric sphere intersections, outlined 2D circles around orbital satellite icons cleanly represent the spherical range shells without violating system primitives. This grounds the narration's constellation broadcast in the geometric reality of trilateration.",
+    "skills": [
+      "core",
+      "geography",
+      "networks"
+    ],
+    "what": [
+      "A central globe representing Earth",
+      "Three satellite icons positioned in medium Earth orbit",
+      "Expanding outlined circles centered on each satellite representing range spheres (noting 2D circles stand in for 3D spheres due to vocabulary limits)",
+      "Two intersection dots showing candidate receiver locations where range circles overlap",
+      "A text readout displaying the broadcast orbital data and time code offset"
+    ],
+    "when": "As narration opens on 'High above', the globe and satellite constellation appear. When 'continuously broadcasts' is spoken, range circles expand from the satellites toward Earth. As 'precise time codes' finishes, intersection dots and clock bias offset text highlight.",
+    "why": "Establishes the constellation scale and broadcast mechanism required by the narration, while introducing the geometric trilateration spheres and the residual ambiguity from receiver clock bias."
+  },
+  "schema": "VisualPlan"
+}

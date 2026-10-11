@@ -1,0 +1,31 @@
+{
+  "model": "gemini-3.8-flash",
+  "output": {
+    "beat_id": "the_silent_receiver",
+    "focus": [
+      "The passive smartphone icon on Earth's surface",
+      "One-way incoming signal paths converging from orbit"
+    ],
+    "how": "Place the globe in the lower portion of the frame with the smartphone icon prominent on its horizon. Position four satellite icons in a curved constellation arc in the upper frame. Animate unidirectional flow particles descending from each satellite to converge on the phone, while highlighting the phone to emphasize its role as a passive receiver.",
+    "persist": [
+      "globe",
+      "smartphone icon",
+      "satellite icons"
+    ],
+    "rationale": "Directly embodies the narration's question by visually emphasizing the asymmetry of GPS: active radio flows move strictly downward from the orbital constellation into a silent terrestrial receiver that broadcasts nothing back.",
+    "skills": [
+      "core",
+      "geography",
+      "networks"
+    ],
+    "what": [
+      "A curved globe representing planetary scale",
+      "A smartphone icon anchored to a distinct point on the globe",
+      "A group of satellite icons distributed in orbit above the globe",
+      "Directed signal lines showing one-way transmission from satellites down to the phone"
+    ],
+    "when": "As narration begins ('Your phone knows exactly where it is on Earth'), reveal the globe with the smartphone marker highlighted on the surface. When satellites are mentioned, reveal the orbital satellite nodes overhead and connect them. As narration states 'yet it never transmits a signal back out into space', trigger downward signal flows towards the phone while keeping the phone strictly passive.",
+    "why": "Establishes the central enigma framed by the beat: the phone can determine its exact Earth coordinates strictly as a silent listener, receiving broadcast telemetry from orbit without transmitting any signal in return."
+  },
+  "schema": "VisualPlan"
+}

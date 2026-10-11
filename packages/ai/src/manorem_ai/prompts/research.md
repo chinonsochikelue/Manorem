@@ -17,7 +17,7 @@ Return a `ResearchBrief`:
 
 - `idea` -- echo the idea, lightly cleaned up.
 - `claims` -- the load-bearing assertions the explainer will rest on. For each:
-  - `id` -- a short kebab-case slug, unique within the brief.
+  - `id` -- a short snake_case slug (lowercase letters, digits and underscores; no hyphens or spaces), unique within the brief.
   - `text` -- one clear sentence.
   - `kind` -- your honest epistemic label: `fact` (established, checkable),
     `inference` (a reasonable conclusion), `estimate` (a rough figure), or
