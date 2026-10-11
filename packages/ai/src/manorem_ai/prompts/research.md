@@ -19,15 +19,17 @@ Return a `ResearchBrief`:
 - `claims` -- the load-bearing assertions the explainer will rest on. For each:
   - `id` -- a short snake_case slug (lowercase letters, digits and underscores; no hyphens or spaces), unique within the brief.
   - `text` -- one clear sentence.
-  - `kind` -- your honest epistemic label: `fact` (established, checkable),
-    `inference` (a reasonable conclusion), `estimate` (a rough figure), or
-    `contested` (genuinely disputed). This is *your assessment*, not a verified
-    property; label it truthfully rather than inflating certainty.
-  - `confidence` -- 0.0 to 1.0, again your own estimate.
+  - `type` -- the kind of assertion, chosen from exactly these and no other word:
+    `fact`, `definition`, `number`, `date`, `comparison`, `causal`, `historical`,
+    `quote`, `interpretation`. Pick the closest. This is your honest label, not a
+    verified property, so do not inflate certainty.
+  - `importance` -- `primary` if the explanation leans on it, else `supporting`.
   - `sources` -- zero or more `{url, quote}`. **Every `url` must be one of the
     retrieved documents' URLs, verbatim.** Citing a URL that was not retrieved is a
     fabrication and will be rejected downstream. If no retrieved document supports a
-    claim, leave `sources` empty and lower the `confidence` -- do not invent a source.
+    claim, leave `sources` empty.
+  Leave `status` and `evidence` unset -- they are derived later from the evidence
+  assessment, not written by you.
 - `entities` -- the named things the story may need to depict (a satellite, a
   receiver, a signal). Each has an `id`, `name`, and short `description`.
 - `visual_candidates` -- advisory sketches of how parts of the subject might be
