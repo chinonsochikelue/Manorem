@@ -75,6 +75,7 @@ from manorem_core import (
     Code,
     Diagnostic,
     DiagnosticBag,
+    LLMProviderName,
     ManoremError,
     ObjectStore,
     Settings,
@@ -161,6 +162,25 @@ class _SegmentAudio:
     duration_s: float
 
 
+def _models_for(cfg: Settings) -> tuple[str, str]:
+    """The ``(light, heavy)`` model ids the stages use under the active provider.
+
+    Only Gemini carries a distinct heavier model; the OpenAI-compatible backends
+    (OpenAI proper and Groq, each under its own model setting) and Anthropic name
+    one model for every stage. Cassette and keypool runs replay or attach to Gemini,
+    so they keep the Gemini ids -- a cassette key includes the model, so replay must
+    ask for the exact id its fixtures were recorded under.
+    """
+    provider = cfg.llm_provider
+    if provider is LLMProviderName.ANTHROPIC:
+        return cfg.anthropic_model, cfg.anthropic_model
+    if provider is LLMProviderName.OPENAI:
+        return cfg.openai_model, cfg.openai_model
+    if provider is LLMProviderName.GROQ:
+        return cfg.groq_model, cfg.groq_model
+    return cfg.gemini_model, cfg.gemini_model_heavy
+
+
 class Pipeline:
     """Wires the agents and backends into one ``build`` from idea to video.
 
@@ -204,8 +224,7 @@ class Pipeline:
 
         temp = cfg.llm_temperature
         tokens = cfg.llm_max_tokens
-        light = cfg.gemini_model
-        heavy = cfg.gemini_model_heavy
+        light, heavy = _models_for(cfg)
         self._research_agent = ResearchAgent(
             provider, model=light, temperature=temp, max_tokens=tokens
         )

@@ -20,6 +20,7 @@ lands on ``api.openai.com`` or ``api.justwoker.icu``.
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
@@ -36,6 +37,24 @@ from manorem_ai.provider import (
 )
 
 __all__ = ["OpenAIProvider"]
+
+
+# Groq (and OpenAI) answer a per-minute TPM/RPM overrun with a 429 that clears
+# within the minute, and shed transient 5xx under load. A multi-stage build spends
+# several calls a minute, so one spike should be ridden out with a short capped
+# backoff rather than failing the whole run. (A keypool wraps the Gemini provider,
+# not this one, so retrying here steals no failover from it.) A single request that
+# alone exceeds the token-per-minute budget cannot be saved by waiting -- that
+# surfaces as RateLimitError once the attempts are spent.
+_MAX_ATTEMPTS = 6
+_BACKOFF_BASE_S = 2.0
+_BACKOFF_CAP_S = 20.0
+
+
+def _is_transient(exc: Exception) -> bool:
+    if _is_rate_limit(exc):
+        return True
+    return any(getattr(exc, attr, None) in (500, 502, 503, 504) for attr in ("status_code", "code"))
 
 
 def _render_system(system: str, schema: type[BaseModel]) -> str:
@@ -97,6 +116,37 @@ class OpenAIProvider:
         self._client = OpenAI(**kwargs)
         return self._client
 
+    def _create_with_retry(
+        self,
+        client: Any,
+        *,
+        model: str,
+        system: str,
+        user: str,
+        max_tokens: int,
+        temperature: float,
+    ) -> Any:
+        """Call chat.completions, riding out transient 429/5xx with capped backoff."""
+        for attempt in range(_MAX_ATTEMPTS):
+            try:
+                return client.chat.completions.create(
+                    model=model,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                )
+            except Exception as exc:
+                if attempt + 1 < _MAX_ATTEMPTS and _is_transient(exc):
+                    time.sleep(min(_BACKOFF_BASE_S * 2**attempt, _BACKOFF_CAP_S))
+                    continue
+                if _is_rate_limit(exc):
+                    raise RateLimitError(f"openai rate limit hit: {exc}") from exc
+                raise ProviderError(f"openai call failed: {exc}") from exc
+        raise AssertionError("unreachable: loop either returns or raises")  # pragma: no cover
+
     def structured[T: BaseModel](
         self,
         *,
@@ -111,20 +161,14 @@ class OpenAIProvider:
         # prompt text -- and therefore the cassette key -- is identical across
         # OpenAI and Anthropic providers.
         system = _render_system(prompt.system, schema)
-        try:
-            response = client.chat.completions.create(
-                model=model,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": render_user(prompt)},
-                ],
-            )
-        except Exception as exc:
-            if _is_rate_limit(exc):
-                raise RateLimitError(f"openai rate limit hit: {exc}") from exc
-            raise ProviderError(f"openai call failed: {exc}") from exc
+        response = self._create_with_retry(
+            client,
+            model=model,
+            system=system,
+            user=render_user(prompt),
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
 
         text = response.choices[0].message.content
         payload = _extract_json(text) if text else ""

@@ -156,6 +156,22 @@ def _is_rate_limit(exc: Exception) -> bool:
     return "429" in text or "rate limit" in text or "rate_limit" in text
 
 
+def _normalize_base_url(base_url: str) -> str:
+    """Strip a trailing ``/v1/messages`` or ``/v1`` so the SDK's own append is not doubled.
+
+    The Anthropic SDK builds ``<base_url>/v1/messages``. A gateway user naturally
+    copies the full endpoint they were given (``https://host/v1/messages``), which
+    then doubles into ``/v1/messages/v1/messages`` and 404s. Reducing the value to
+    the bare host the SDK expects accepts both spellings.
+    """
+    trimmed = base_url.rstrip("/")
+    for suffix in ("/v1/messages", "/v1"):
+        if trimmed.endswith(suffix):
+            trimmed = trimmed[: -len(suffix)]
+            break
+    return trimmed
+
+
 class AnthropicProvider:
     """Anthropic Claude as an :class:`~manorem_ai.provider.LLMProvider`.
 
@@ -188,10 +204,14 @@ class AnthropicProvider:
         if self._api_key is None:
             raise ProviderError("AnthropicProvider needs an api_key to build a client")
         # ``base_url`` is passed only when set, so the native endpoint stays the SDK
-        # default; a gateway (e.g. AgentRouter) is opt-in via the setting.
+        # default; a gateway (e.g. JustWorker) is opt-in via the setting. The SDK
+        # appends ``/v1/messages`` itself, so a base_url that already carries that
+        # path (an easy mistake -- it is the endpoint one sees in a dashboard) would
+        # produce ``/v1/messages/v1/messages`` and a 404. Normalise to the bare host
+        # the SDK expects, which is also the "no /v1" form the gateway documents.
         kwargs: dict[str, Any] = {"api_key": self._api_key}
         if self._base_url is not None:
-            kwargs["base_url"] = self._base_url
+            kwargs["base_url"] = _normalize_base_url(self._base_url)
         self._client = Anthropic(**kwargs)
         return self._client
 

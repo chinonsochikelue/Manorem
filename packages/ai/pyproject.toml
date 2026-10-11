@@ -16,6 +16,12 @@ dependencies = [
 # The live Gemini backend. Left out of the default install so cassette/stub
 # replay -- all that M1's tests need -- works with no network client present.
 gemini = ["google-genai>=0.3"]
+# The live Anthropic (Claude) backend, same rationale: opt-in, absent from the
+# default/offline install. AnthropicProvider imports the SDK lazily.
+anthropic = ["anthropic>=0.40"]
+# The OpenAI-compatible backend (OpenAI proper, or a compatible endpoint such as
+# Groq via base_url), same opt-in rationale. OpenAIProvider imports the SDK lazily.
+openai = ["openai>=1.40"]
 
 [tool.uv.sources]
 manorem-core = { workspace = true }

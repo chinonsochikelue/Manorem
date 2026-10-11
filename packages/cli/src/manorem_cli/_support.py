@@ -115,10 +115,10 @@ def build_provider(settings: Settings) -> LLMProvider:
     """Choose the LLM backend named in settings.
 
     ``cassette`` is the default and needs no key: it replays committed fixtures, so a
-    ``build`` runs offline and deterministically. ``gemini``, ``anthropic`` and
-    ``openai`` require keys. ``keypool`` wraps a pool of keys for one of the backends
-    with rate-limit failover. The ``stub`` provider has no prepared responses outside a
-    test and is refused here.
+    ``build`` runs offline and deterministically. ``gemini``, ``anthropic``, ``openai``
+    and ``groq`` require keys (``groq`` is OpenAI-compatible, served from Groq's cloud).
+    ``keypool`` wraps a pool of keys for one of the backends with rate-limit failover.
+    The ``stub`` provider has no prepared responses outside a test and is refused here.
     """
     provider = settings.llm_provider
     if provider is LLMProviderName.GEMINI:
@@ -134,6 +134,13 @@ def build_provider(settings: Settings) -> LLMProvider:
         return OpenAIProvider(
             api_key=_key_or_raise(settings.openai_api_key, "openai"),
             base_url=settings.openai_base_url,
+        )
+    if provider is LLMProviderName.GROQ:
+        # Groq speaks the OpenAI wire protocol, so it reuses OpenAIProvider -- only
+        # the credential, model and base_url are Groq's, kept under MANOREM_GROQ_*.
+        return OpenAIProvider(
+            api_key=_key_or_raise(settings.groq_api_key, "groq"),
+            base_url=settings.groq_base_url,
         )
     if provider is LLMProviderName.KEYPOOL:
         if not settings.keypool_key_pool:
@@ -157,7 +164,8 @@ def build_provider(settings: Settings) -> LLMProvider:
         return CassetteProvider(settings.ai_cassette_dir, record=settings.ai_record, inner=inner)
     raise ConfigError(
         "the stub provider needs responses prepared in a test; set "
-        "MANOREM_LLM_PROVIDER=cassette, =gemini, =anthropic, =openai, or =keypool for the CLI"
+        "MANOREM_LLM_PROVIDER=cassette, =gemini, =anthropic, =openai, =groq, "
+        "or =keypool for the CLI"
     )
 
 

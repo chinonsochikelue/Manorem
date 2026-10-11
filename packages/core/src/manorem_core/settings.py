@@ -21,6 +21,7 @@ class LLMProviderName(StrEnum):
     GEMINI = "gemini"
     ANTHROPIC = "anthropic"
     OPENAI = "openai"
+    GROQ = "groq"
     KEYPOOL = "keypool"
     CASSETTE = "cassette"
     STUB = "stub"
@@ -124,6 +125,15 @@ class Settings(BaseSettings):
     openai_base_url: str | None = Field(
         default=None,
         description="Optional gateway URL, set MANOREM_OPENAI_BASE_URL",
+    )
+    # Groq is OpenAI-compatible and served from its own cloud, so it rides the
+    # OpenAIProvider with a Groq base_url -- but under its own credential and model
+    # names, so Groq config never tangles with a real OpenAI account's.
+    groq_api_key: SecretStr | None = Field(default=None)
+    groq_model: str = Field(default="llama-3.3-70b-versatile")
+    groq_base_url: str = Field(
+        default="https://api.groq.com/openai/v1",
+        description="Groq's OpenAI-compatible endpoint; set MANOREM_GROQ_BASE_URL to override",
     )
     keypool_key_pool: list[str] = Field(
         default_factory=list, description="Ordered api keys for KeyPoolProvider"
