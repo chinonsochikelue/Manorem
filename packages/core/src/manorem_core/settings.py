@@ -131,6 +131,12 @@ class Settings(BaseSettings):
     keypool_cooldown: int = Field(default=2, ge=0, description="Cooldown attempts after a 429")
     llm_temperature: float = Field(default=0.4, ge=0.0, le=2.0)
     llm_max_tokens: int = Field(default=8192, gt=0)
+    # A ceiling on the model's output, not a per-call spend: a call is billed for
+    # the tokens it actually generates, and the free-tier wall is requests/day, not
+    # tokens. Repair emits the one large output -- a full JsonPatch over a scene --
+    # so it gets a higher ceiling than the other stages, which keeps that patch from
+    # truncating into invalid JSON without raising the cap (or the cost) elsewhere.
+    llm_repair_max_tokens: int = Field(default=16384, gt=0)
     ai_record: bool = Field(default=False, description="Refresh cassettes from live calls")
     ai_cassette_dir: Path = Field(default=Path("tests/fixtures/cassettes"))
 
